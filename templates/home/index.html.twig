@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}JDPU STC — Talabalar Texnologiya Klubi{% endblock %}
+
+{% block body %}
+<div class="relative w-screen h-screen min-h-[550px] overflow-hidden bg-[#08080a] text-zinc-100 flex flex-col justify-between select-none"
+     data-controller="homepage">
+
+  <!-- Background Canvas for Mathematical Particle Wave Simulation -->
+  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <canvas data-homepage-target="particleCanvas" class="w-full h-full block"></canvas>
+  </div>
+
+  <!-- Subtle CRT Scanlines & Grain Overlay -->
+  <div class="absolute inset-0 z-1 pointer-events-none scanlines opacity-30"></div>
+  <div class="absolute inset-0 z-1 pointer-events-none grain-overlay opacity-40"></div>
+
+  <!-- Audio Element (played once on user gesture) -->
+  <audio data-homepage-target="audio" preload="metadata" class="hidden">
+    <source src="{{ asset('audio/intro.mp3') }}" type="audio/mpeg">
+  </audio>
+
+  <!-- Top Navigation Bar -->
+  <header class="relative z-20 w-full px-6 py-6 md:px-12 md:py-8 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <span class="inline-block w-2 h-2 rounded-full bg-zinc-400 animate-pulse"></span>
+      <h1 class="font-mono text-xs md:text-sm tracking-[0.25em] text-zinc-300 uppercase">
+        JDPU STC
+      </h1>
+      <span class="text-zinc-600 font-mono text-xs hidden sm:inline">/</span>
+      <span class="text-zinc-500 font-mono text-[11px] tracking-wider hidden sm:inline">TALABALAR TEXNOLOGIYA KLUBI</span>
+    </div>
+
+    <div>
+      {% if isSelectionOpen %}
+        <a href="{{ path('app_candidate_register') }}" 
+           class="group relative inline-flex items-center gap-2 px-4 py-2 border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-500 text-zinc-200 hover:text-white font-mono text-xs tracking-wider uppercase transition-all duration-200 rounded-sm shadow-sm backdrop-blur-md">
+          <span>Saralash</span>
+          <span class="text-zinc-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">↗</span>
+        </a>
+      {% else %}
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 border border-zinc-800 bg-zinc-950/60 text-zinc-500 font-mono text-xs tracking-wider uppercase rounded-sm">
+          <span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span>
+          <span>Saralash yopiq</span>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Center Experience Container -->
+  <main class="relative z-10 flex-1 flex flex-col items-center justify-center px-4 -mt-6">
+    <div class="relative w-full max-w-sm flex flex-col items-center">
+      
+      <!-- Portrait Container -->
+      <div class="relative w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden flex items-center justify-center">
+        <!-- Grayscale Portrait with Vignette & Edge Blend -->
+        <img data-homepage-target="portrait"
+             src="{{ asset('images/murod_portrait.jpg') }}" 
+             alt="Murod — JDPU STC"
+             class="w-full h-full object-cover filter grayscale contrast-105 brightness-50 opacity-30 portrait-vignette transition-all duration-1000 ease-out" />
+        
+        <!-- Gradient Overlay blending lower neck/shoulders smoothly into black -->
+        <div class="absolute inset-0 bg-gradient-to-t from-[#08080a] via-transparent to-transparent opacity-90 pointer-events-none"></div>
+      </div>
+
+      <!-- Audio-Reactive Waveform Canvas directly beneath portrait -->
+      <div class="w-64 sm:w-72 h-12 mt-4 flex items-center justify-center">
+        <canvas data-homepage-target="waveformCanvas" class="w-full h-full block"></canvas>
+      </div>
+
+      <!-- Technical Audio Status Caption -->
+      <div class="mt-2 text-center">
+        <span data-homepage-target="statusText" class="font-mono text-[10px] tracking-[0.2em] text-zinc-500 uppercase">
+          AUDIO // 44.1 kHz // ANALYSER
+        </span>
+      </div>
+
+      <!-- Optional Error Notice -->
+      <div data-homepage-target="errorMessage" 
+           class="hidden mt-3 px-3 py-1.5 bg-red-950/40 border border-red-900/50 text-red-300 font-mono text-xs rounded text-center">
+      </div>
+
+      <!-- Initial Entry Overlay (Over the center area) -->
+      <div data-homepage-target="entryOverlay" 
+           class="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#08080a]/75 backdrop-blur-[2px] transition-opacity duration-700">
+        
+        <button type="button"
+                data-action="click->homepage#startExperience"
+                class="group relative inline-flex items-center gap-3 px-6 py-3 border border-zinc-600 hover:border-zinc-300 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-100 font-mono text-sm tracking-[0.15em] uppercase rounded-sm shadow-lg transition-all duration-300 cursor-pointer">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 group-hover:scale-125 transition-transform"></span>
+          <span>Boshlash</span>
+        </button>
+
+        <p class="mt-4 font-mono text-xs tracking-wider text-zinc-400">
+          Ovoz bilan tanishing
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Bottom Bar with Unobtrusive Audio & Fullscreen Controls -->
+  <footer class="relative z-20 w-full px-6 py-6 md:px-12 md:py-8 flex items-center justify-between">
+    <!-- Bottom Left: Metadata -->
+    <div class="font-mono text-[11px] tracking-widest text-zinc-600 hidden sm:block uppercase">
+      JDPU STC // LAB // 2026
+    </div>
+
+    <!-- Bottom Right: Unobtrusive Audio & Fullscreen Controls -->
+    <div class="flex items-center space-x-4 ml-auto">
+      <!-- Play/Pause Toggle -->
+      <button type="button"
+              data-homepage-target="playButton"
+              data-action="click->homepage#togglePlay"
+              aria-label="Ijro etish / Pauza"
+              class="w-8 h-8 rounded border border-zinc-800 bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition-colors">
+        <!-- Play Icon -->
+        <svg data-homepage-target="playIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+          <polygon points="5,3 19,12 5,21"></polygon>
+        </svg>
+        <!-- Pause Icon -->
+        <svg data-homepage-target="pauseIcon" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24">
+          <rect x="6" y="4" width="4" height="16"></rect>
+          <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+        <!-- Replay Icon -->
+        <svg data-homepage-target="replayIcon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+      </button>
+
+      <!-- Mute/Unmute Toggle -->
+      <button type="button"
+              data-homepage-target="muteButton"
+              data-action="click->homepage#toggleMute"
+              aria-label="Ovozni o'chirish"
+              class="w-8 h-8 rounded border border-zinc-800 bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition-colors">
+        <!-- Sound On Icon -->
+        <svg data-homepage-target="muteIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <!-- Sound Off Icon -->
+        <svg data-homepage-target="unmuteIcon" class="w-3.5 h-3.5 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button type="button"
+              data-homepage-target="fullscreenButton"
+              data-action="click->homepage#toggleFullscreen"
+              aria-label="To'liq ekran rejimini yoqish"
+              class="w-8 h-8 rounded border border-zinc-800 bg-zinc-950/60 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 flex items-center justify-center transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+    </div>
+  </footer>
+
+</div>
+{% endblock %}

@@ -22,3 +22,4 @@
 # Local dev runner scripts
 /bin/local/
 /public/uploads/
+/test-results/

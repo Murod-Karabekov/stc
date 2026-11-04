@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
-body {
-    background-color: skyblue;
+@layer base {
+  :root {
+    --bg-terminal: #08080a;
+    --text-primary: #f4f4f5;
+    --text-muted: #71717a;
+  }
+
+  body {
+    background-color: var(--bg-terminal);
+    color: var(--text-primary);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Subtle CRT / terminal scanlines */
+.scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  ), linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.02),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.02)
+  );
+  background-size: 100% 3px, 6px 100%;
+}
+
+/* Subtle grain noise */
+.grain-overlay {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Portrait mask & fade */
+.portrait-vignette {
+  mask-image: radial-gradient(circle at 50% 40%, black 50%, rgba(0, 0, 0, 0.6) 75%, transparent 100%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, black 50%, rgba(0, 0, 0, 0.6) 75%, transparent 100%);
 }
