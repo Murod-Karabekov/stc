@@ -1,0 +1,439 @@
+{
+  "exam": {
+    "title": "JDPU STC Saralash Imtihoni 2026",
+    "code": "JDPU-STC-2026",
+    "description": "JDPU Talabalar Texnologiya Klubi volontyorlik saralash testi. 25 ta savol, 5 ta bo'lim, 60 daqiqa.",
+    "durationMinutes": 60,
+    "isOpen": true,
+    "isPublished": false
+  },
+  "sections": [
+    {
+      "position": 1,
+      "title": "Mantiqiy va algoritmik fikrlash",
+      "description": "Algoritmik qonuniyatlar, mantiqiy ketma-ketliklar va hisoblash qobiliyati"
+    },
+    {
+      "position": 2,
+      "title": "Muammoni tahlil qilish va xato sababini aniqlash",
+      "description": "Tizimdagi uzilishlar, sabab-oqibat bog'liqliklari va xatoliklarni bartaraf etish"
+    },
+    {
+      "position": 3,
+      "title": "Tizimli fikrlash va samarali yechim qurish",
+      "description": "Murakkab tizimlarning tuzilishi, bog'lanishlar va resurslardan unumli foydalanish"
+    },
+    {
+      "position": 4,
+      "title": "Tanqidiy fikrlash va dalil asosida qaror qabul qilish",
+      "description": "Ma'lumotlarni xolis baholash, xulosalar chiqarish va faktlarga tayanish"
+    },
+    {
+      "position": 5,
+      "title": "Diskret matematika",
+      "description": "To'plamlar, graflar, kombinatorika va Dirichlet prinsipi"
+    }
+  ],
+  "questions": [
+    {
+      "number": 1,
+      "sectionPosition": 1,
+      "difficulty": "easy",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nKetma-ketlik berilgan: 2, 6, 12, 20, 30, ?\n\n**So'roq belgisi o'rnidagi keyingi sonni aniqlang.**",
+      "explanation": "Qonuniyat: n*(n+1). 1*2=2, 2*3=6, 3*4=12, 4*5=20, 5*6=30, 6*7=42.",
+      "options": [
+        {"content": "36 ta", "isCorrect": false},
+        {"content": "40 ta", "isCorrect": false},
+        {"content": "42 ta", "isCorrect": true},
+        {"content": "48 ta", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 2,
+      "sectionPosition": 1,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nParallel vazifalar grafigida A vazifa B va C ga bog'liq. Har ikkala vazifa 3 daqiqa vaqt oladi. D vazifa esa faqat B tugagach boshlanadi.\n\n**Eng erta yakunlash vaqti qancha?**",
+      "explanation": "Parallel bajarilish tahlili: B va C bir vaqtda boshlanadi.",
+      "options": [
+        {"content": "6 daqiqa", "isCorrect": true},
+        {"content": "9 daqiqa", "isCorrect": false},
+        {"content": "12 daqiqa", "isCorrect": false},
+        {"content": "3 daqiqa", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 3,
+      "sectionPosition": 1,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nUchta kompyuter navbat bilan ma'lumot uzatadi. Agar birinchi kompyuter 2-sekundda, ikkinchisi 3-sekundda, uchinchisi 5-sekundda uzatishni takrorlasa, ular birinchi marta qaysi sekundda bir vaqtda uzatadi?",
+      "explanation": "EKUK(2, 3, 5) = 30.",
+      "options": [
+        {"content": "15-sekundda", "isCorrect": false},
+        {"content": "30-sekundda", "isCorrect": true},
+        {"content": "60-sekundda", "isCorrect": false},
+        {"content": "10-sekundda", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 4,
+      "sectionPosition": 1,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nBinar qidiruv (binary search) algoritmi 1000 ta saralangan elementdan iborat massivda qidirilayotgan elementni eng ko'pi bilan necha qadamda topadi?",
+      "explanation": "log2(1000) <= 10 qadam (2^10 = 1024).",
+      "options": [
+        {"content": "10 qadam", "isCorrect": true},
+        {"content": "50 qadam", "isCorrect": false},
+        {"content": "100 qadam", "isCorrect": false},
+        {"content": "500 qadam", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 5,
+      "sectionPosition": 1,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nRekursiv funksiya f(n) = f(n-1) + 2*f(n-2) munosabat bilan aniqlangan. Agar f(1) = 1, f(2) = 3 bo'lsa, f(4) qiymatini toping.",
+      "explanation": "f(3) = 3 + 2*1 = 5; f(4) = 5 + 2*3 = 11.",
+      "options": [
+        {"content": "9", "isCorrect": false},
+        {"content": "11", "isCorrect": true},
+        {"content": "13", "isCorrect": false},
+        {"content": "15", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 6,
+      "sectionPosition": 2,
+      "difficulty": "easy",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nFoydalanuvchi tizimga kirishda «404 Not Found» xatosini olmoqda. Bu nimani anglatadi?",
+      "explanation": "404 HTTP status kodi so'ralgan resurs serverda topilmaganini bildiradi.",
+      "options": [
+        {"content": "So'ralgan sahifa yoki manzil mavjud emas", "isCorrect": true},
+        {"content": "Foydalanuvchi paroli noto'g'ri", "isCorrect": false},
+        {"content": "Server ichki nosozligi yuz berdi", "isCorrect": false},
+        {"content": "Ma'lumotlar bazasi to'xtagan", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 7,
+      "sectionPosition": 2,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nMa'lumotlar bazasida so'rovlar keskin sekinlashdi. CPU bandligi normal, ammo disk I/O 100% ga yetgan. Eng ehtimoliy sabab nima?",
+      "explanation": "Kerakli indekslarning yo'qligi sababli diskdan ketma-ket to'liq o'qish (table scan) yuzaga keladi.",
+      "options": [
+        {"content": "So'rovda kerakli ustunlar bo'yicha indeks mavjud emas", "isCorrect": true},
+        {"content": "Tarmoq tezligi sekinlashgan", "isCorrect": false},
+        {"content": "RAM xotirasi yetishmayapti", "isCorrect": false},
+        {"content": "Foydalanuvchilar sessiyasi muddati tugagan", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 8,
+      "sectionPosition": 2,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nServer xotirasi (Memory Leak) vaqt o'tishi bilan to'lib bormoqda va restart qilingach nolga tushadi. Asosiy ildiz sababi nima bo'lishi mumkin?",
+      "explanation": "Foydalanilmayotgan resurslar yoki ob'ektlarga havola saqlanib qolib xotiradan bo'shatilmayapti.",
+      "options": [
+        {"content": "Ochiq qolgan ulanishlar yoki kesh ob'ektlari tozalanmasdan to'planib bormoqda", "isCorrect": true},
+        {"content": "CPU haddan ortiq qizib ketmoqda", "isCorrect": false},
+        {"content": "Foydalanuvchilar soni kamaygan", "isCorrect": false},
+        {"content": "SSL sertifikat muddati tugagan", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 9,
+      "sectionPosition": 2,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nIkki parallel jarayon bir vaqtda bitta hisob raqamidan 100 000 so'm yechmoqchi bo'ldi. Har ikkisi balansi 150 000 so'm ekanini tekshirdi va ikkalasi ham pulni yechib, qoldiqni 50 000 qilib yozdi. Bu qanday xatolik?",
+      "explanation": "Race condition (poyga holati) va tranzaksiyalar izolyatsiyasining buzilishi.",
+      "options": [
+        {"content": "Race condition (poyga holati)", "isCorrect": true},
+        {"content": "Deadlock (berk ko'cha)", "isCorrect": false},
+        {"content": "Stack overflow (stek to'lishi)", "isCorrect": false},
+        {"content": "Syntax error (sintaktik xatolik)", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 10,
+      "sectionPosition": 2,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nMa'lumotlarni qayta ishlash konveyerida (processing pipeline) 1-bosqich soniyasiga 100 ta, 2-bosqich soniyasiga 20 ta, 3-bosqich soniyasiga 80 ta element o'tkazadi. Tizimning umumiy o'tkazuvchanligi qancha?",
+      "explanation": "Konveyer tezligi eng sekin bo'g'in (bottleneck) bilan cheklanadi: 20 ta/sekund.",
+      "options": [
+        {"content": "20 ta/sekund", "isCorrect": true},
+        {"content": "100 ta/sekund", "isCorrect": false},
+        {"content": "66 ta/sekund", "isCorrect": false},
+        {"content": "200 ta/sekund", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 11,
+      "sectionPosition": 3,
+      "difficulty": "easy",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nKatta hajmdagi statik rasmlarni foydalanuvchiga tez yetkazib berish uchun eng maqbul arxitekturaviy yechim nima?",
+      "explanation": "CDN (Content Delivery Network) statik fayllarni geografik yaqin tugunlardan tez yetkazadi.",
+      "options": [
+        {"content": "CDN (Content Delivery Network) tizimidan foydalanish", "isCorrect": true},
+        {"content": "Rasmlarni ma'lumotlar bazasida BLOB sifatida saqlash", "isCorrect": false},
+        {"content": "Barcha rasmlarni bitta PDF faylga joylash", "isCorrect": false},
+        {"content": "Har bir so'rovda rasmlarni qayta siqish", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 12,
+      "sectionPosition": 3,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nTizimda foydalanuvchi parollarini saqlashda eng xavfsiz yondashuv qaysi?",
+      "explanation": "Zamonaviy sekin kriptografik xeshlar (bcrypt, argon2) tuz (salt) bilan birga qo'llanilishi shart.",
+      "options": [
+        {"content": "Argon2 yoki bcrypt kabi moslashuvchan xesh algoritmlari bilan tuzlab xeshlash", "isCorrect": true},
+        {"content": "MD5 algoritmi bilan bir marta xeshlash", "isCorrect": false},
+        {"content": "Base64 formatida kodlab matn sifatida saqlash", "isCorrect": false},
+        {"content": "Parollarni reversiv RSA kalit bilan shifrlab saqlash", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 13,
+      "sectionPosition": 3,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nTizimda keshlash mexanizmidan foydalanishda «Cache Invalidation» (keshni yangilash) muammosining eng xavfsiz yechimi qaysi?",
+      "explanation": "Versiyalash yoki qat'iy hodisaga asoslangan bekor qilish keshning eskirishini oldini oladi.",
+      "options": [
+        {"content": "Ma'lumot o'zgarganda tegishli kesh kalitini bekor qilish yoki versiyali kalit ishlatish", "isCorrect": true},
+        {"content": "Keshni cheksiz muddatga saqlash va hech qachon o'chirmaslik", "isCorrect": false},
+        {"content": "Har bir foydalanuvchi uchun alohida butun bazani keshga nusxalash", "isCorrect": false},
+        {"content": "Faqat brauzer keshiga tayanib server keshini butkul o'chirish", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 14,
+      "sectionPosition": 3,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nIdempotentlik xususiyati (Idempotency) tarmoq so'rovlarida nimani anglatadi?",
+      "explanation": "So'rovni bir necha bor qayta yuborish tizim holatini faqat bitta so'rov kabi o'zgartiradi.",
+      "options": [
+        {"content": "Aynan bir xil so'rovni bir necha bor bajarish tizimda qo'shimcha o'zgarish hosil qilmaydi", "isCorrect": true},
+        {"content": "Har bir so'rov yangi yozuv qo'shishi shartligini anglatadi", "isCorrect": false},
+        {"content": "So'rov faqat shifrlangan kanallar orqali o'tishi lozimligini bildiradi", "isCorrect": false},
+        {"content": "Faqat bir vaqtning o'zida bitta foydalanuvchi murojaat qila olishini bildiradi", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 15,
+      "sectionPosition": 3,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nGorizontal kengayish (Horizontal scaling) va Vertikal kengayish (Vertical scaling) orasidagi asosiy farq nimada?",
+      "explanation": "Gorizontal - tugunlar (serverlar) sonini oshirish, Vertikal - bitta server resurslarini (CPU/RAM) kuchaytirish.",
+      "options": [
+        {"content": "Gorizontalda tizimga yangi server tugunlari qo'shiladi, vertikalda esa mavjud server resurslari (CPU/RAM) oshiriladi", "isCorrect": true},
+        {"content": "Gorizontal faqat dasturiy ta'minotni, vertikal esa faqat tarmoq simlarini yangilaydi", "isCorrect": false},
+        {"content": "Gorizontal kengayish hech qachon server xarajatini talab qilmaydi", "isCorrect": false},
+        {"content": "Ular orasida hech qanday amaliy farq mavjud emas", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 16,
+      "sectionPosition": 4,
+      "difficulty": "easy",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\n«Ushbu yangi dasturiy vosita 100% barcha kiberhujumlardan mutlaq himoya qiladi» degan bayonot berildi. Tanqidiy tahlil nuqtai nazaridan bu qanday xulosalanadi?",
+      "explanation": "Kiberxavfsizlikda mutlaq 100% himoya mavjud emas, har doim yangi zaifliklar va inson omili xavfi bo'ladi.",
+      "options": [
+        {"content": "Asossiz va haqiqatga zid, chunki axborot xavfsizligida 100% kafolatlangan mutlaq himoya mavjud emas", "isCorrect": true},
+        {"content": "To'liq haqiqat, chunki zamonaviy antiviruslar barcha tahdidlarni oldindan biladi", "isCorrect": false},
+        {"content": "Faqat ochiq kodli dasturlarga nisbatan to'g'ri", "isCorrect": false},
+        {"content": "Agar dastur qimmat bo'lsa, albatta to'g'ri", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 17,
+      "sectionPosition": 4,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nStatistikada «Korrelyatsiya sabab-oqibatni (causation) anglatmaydi» degan qoida nimani bildiradi?",
+      "explanation": "Ikki hodisaning birga sodir bo'lishi ulardan biri ikkinchisini keltirib chiqarganini isbotlamaydi.",
+      "options": [
+        {"content": "Ikki o'zgaruvchi orasidagi bog'liqlik birining ikkinchisiga bevosita sababchi ekanligini isbotlamaydi", "isCorrect": true},
+        {"content": "Barcha statistik hisobotlar har doim soxta ekanini bildiradi", "isCorrect": false},
+        {"content": "O'lchovlar soni yetarli bo'lsa, korrelyatsiya har doim bevosita sabab bo'ladi", "isCorrect": false},
+        {"content": "Faqat iqtisodiy ma'lumotlarga tegishli tushuncha", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 18,
+      "sectionPosition": 4,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nJamoada qaror qabul qilishda «Tasdiqlashga moyillik» (Confirmation bias) nimada namoyon bo'ladi?",
+      "explanation": "Inson o'zining oldingi fikrini tasdiqlovchi dalillarni izlashi va qarshi faktlarni e'tiborsiz qoldirishi.",
+      "options": [
+        {"content": "O'zining mavjud fikrini tasdiqlovchi dalillarni tanlab olib, zid keluvchi faktlarga e'tibor bermaslik", "isCorrect": true},
+        {"content": "Barcha faktlarni bir xil xolislik bilan qabul qilish", "isCorrect": false},
+        {"content": "Faqat rasmiy statistikaga tayanish", "isCorrect": false},
+        {"content": "Qaror qabul qilishni boshqalarga yuklash", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 19,
+      "sectionPosition": 4,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\nTizimda A/B test o'tkazildi: yangi dizayn konversiyani 2% dan 2.2% ga oshirdi, ammo tanlanma hajmi juda kichik (atigi 50 kishi). Ushbu natija asosida butun tizimni o'zgartirish to'g'rimi?",
+      "explanation": "Kichik tanlanmada natija statistik jihatdan ahamiyatsiz (p-value yuqori) bo'lib, tasodifiy tebranish bo'lishi mumkin.",
+      "options": [
+        {"content": "Yo'q, chunki kichik tanlanmada farq statistik ishonchlilikka (statistical significance) ega emas va tasodif bo'lishi mumkin", "isCorrect": true},
+        {"content": "Ha, chunki har qanday o'sish darhol qabul qilinishi kerak", "isCorrect": false},
+        {"content": "Ha, chunki A/B test doim 100% aniq xulosa beradi", "isCorrect": false},
+        {"content": "Yo'q, chunki faqat 10% dan yuqori farq hisobga olinadi", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 20,
+      "sectionPosition": 4,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "draft",
+      "isFixture": true,
+      "content": "[DEV FIXTURE — RASMIY SAVOL KUTILMOQDA]\n\n«Agar bu funksiya xavfli bo'lganida, boshqa dasturchilar uni ishlatmagan bo'lardi» degan dalil qaysi mantiqiy xatoga (logical fallacy) misol bo'ladi?",
+      "explanation": "Argumentum ad populum (ko'pchilikka murojaat) - ko'pchilik qilayotgani sababli xavfsiz deb xulosa chiqarish xatosi.",
+      "options": [
+        {"content": "Ko'pchilikka tayanib xulosa chiqarish (Argumentum ad populum)", "isCorrect": true},
+        {"content": "Shaxsiyatga o'tish (Ad hominem)", "isCorrect": false},
+        {"content": "Oqibatdan sabab yasash (Affirming the consequent)", "isCorrect": false},
+        {"content": "Yolg'on dilemma (False dilemma)", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 21,
+      "sectionPosition": 5,
+      "difficulty": "easy",
+      "points": 1,
+      "status": "ready",
+      "isFixture": false,
+      "content": "STCdagi 30 talabaning 18 tasi Python, 15 tasi dizayn bilan shug‘ullanadi. 7 talaba ikkala yo‘nalishda ham qatnashadi.\n\n**Nechta talaba bu ikki yo‘nalishning hech birida qatnashmaydi?**",
+      "explanation": "Kamida bittasida qatnashadiganlar: 18 + 15 − 7 = 26. Hech birida qatnashmaydiganlar: 30 − 26 = 4.",
+      "options": [
+        {"content": "2 ta", "isCorrect": false},
+        {"content": "4 ta", "isCorrect": true},
+        {"content": "7 ta", "isCorrect": false},
+        {"content": "11 ta", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 22,
+      "sectionPosition": 5,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "ready",
+      "isFixture": false,
+      "content": "Laboratoriyada quyidagi qoida doim bajariladi:\n\n> Agar qurilma sinovdan muvaffaqiyatli o‘tgan bo‘lsa, unga yashil belgi qo‘yiladi.\n\nBir qurilmada **yashil belgi yo‘q**.\n\n**Qaysi xulosa albatta to‘g‘ri?**",
+      "explanation": "Muvaffaqiyatli o‘tgan har bir qurilmada yashil belgi bo‘lishi shart. Belgi yo‘qligi muvaffaqiyatli o‘tmaganini bildiradi. Sinovga umuman kirgan-kirmagani noma’lum.",
+      "options": [
+        {"content": "Qurilma sinovdan muvaffaqiyatli o‘tmagan.", "isCorrect": true},
+        {"content": "Qurilma sinovdan o‘tkazilmagan.", "isCorrect": false},
+        {"content": "Qurilma buzilgan.", "isCorrect": false},
+        {"content": "Qurilmaga qizil belgi qo‘yilgan.", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 23,
+      "sectionPosition": 5,
+      "difficulty": "medium",
+      "points": 1,
+      "status": "ready",
+      "isFixture": false,
+      "content": "Olti volontyordan uch kishilik jamoa tuziladi. Jamoa ichida lavozimlar ajratilmaydi, ya’ni bir xil uch kishining turli tartibda yozilishi yangi jamoa hisoblanmaydi.\n\nOlti volontyorning ikkitasi — Ali va Bek — bir jamoada qatnasha olmaydi.\n\n**Nechta turli jamoa tuzish mumkin?**",
+      "explanation": "Jami uch kishilik jamoalar: 20 ta. Ali va Bek birga qatnashadigan jamoalar: uchinchi a’zo uchun 4 ta tanlov. Demak, 20 − 4 = 16.",
+      "options": [
+        {"content": "12 ta", "isCorrect": false},
+        {"content": "20 ta", "isCorrect": false},
+        {"content": "16 ta", "isCorrect": true},
+        {"content": "24 ta", "isCorrect": false}
+      ]
+    },
+    {
+      "number": 24,
+      "sectionPosition": 5,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "ready",
+      "isFixture": false,
+      "content": "Oltita kompyuterning har bir jufti orasiga ko‘pi bilan bitta bevosita kabel ulanishi mumkin. Kabel ikki tomonga ham ma’lumot uzatadi.\n\nKompyuterlar boshqa kompyuterlar orqali ham bir-biriga ma’lumot yubora oladi.\n\n**Kamida nechta turli kabel mavjud bo‘lsa, ular qanday joylashtirilganidan qat’i nazar, barcha oltita kompyuter bitta bog‘langan tarmoqda bo‘lishi kafolatlanadi?**",
+      "explanation": "Uzilgan tarmoqda eng ko‘p kabel beshta o‘zaro to‘liq ulangan kompyuter va bitta alohida kompyuter holatida bo‘ladi: 10 ta. Shuning uchun 11 ta turli kabel bo‘lsa, tarmoqning uzilgan bo‘lishi mumkin emas.",
+      "options": [
+        {"content": "5 ta", "isCorrect": false},
+        {"content": "9 ta", "isCorrect": false},
+        {"content": "10 ta", "isCorrect": false},
+        {"content": "11 ta", "isCorrect": true}
+      ]
+    },
+    {
+      "number": 25,
+      "sectionPosition": 5,
+      "difficulty": "hard",
+      "points": 1,
+      "status": "ready",
+      "isFixture": false,
+      "content": "STCda to‘rtta yo‘nalish bor. Har bir yangi volontyor aynan bitta yo‘nalishga biriktiriladi.\n\n**Quyidagi ikkala holat bir vaqtda yuz berishini kafolatlash uchun kamida nechta volontyor kerak?**\n\n- Kamida bitta yo‘nalishda **5 yoki undan ko‘p** volontyor bo‘lishi.\n- Kamida ikkita yo‘nalishning **har birida 2 yoki undan ko‘p** volontyor bo‘lishi.\n\nYo‘nalishlarga qabul soni cheklanmagan; ayrim yo‘nalishlar bo‘sh qolishi mumkin.",
+      "explanation": "Volontyorlar soni qancha bo‘lmasin, ularning barchasini bitta yo‘nalishga joylashtirish mumkin. Shunda ikkinchi shart bajarilmaydi. 17 ta volontyor faqat birinchi shartni kafolatlaydi.",
+      "options": [
+        {"content": "17 ta", "isCorrect": false},
+        {"content": "20 ta", "isCorrect": false},
+        {"content": "Hech qanday chekli son bilan kafolatlab bo‘lmaydi.", "isCorrect": true},
+        {"content": "8 ta", "isCorrect": false}
+      ]
+    }
+  ]
+}

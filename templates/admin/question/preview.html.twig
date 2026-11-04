@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Savol ko'rinishi (Preview) — №{{ question.questionNumber }}{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 p-6 md:p-12 flex flex-col items-center">
+  <div class="w-full max-w-2xl border border-zinc-800 bg-zinc-950/80 p-6 md:p-8 rounded-sm shadow-xl font-mono">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
+      <div>
+        <span class="text-xs text-zinc-500 uppercase tracking-widest">{{ question.section ? question.section.title : 'Bo\'limsiz' }}</span>
+        <h2 class="text-base text-zinc-200 font-semibold mt-1">Savol №{{ question.questionNumber }} ({{ question.difficulty|upper }})</h2>
+      </div>
+      <div>
+        <span class="px-2.5 py-1 text-xs border border-zinc-700 bg-zinc-900 rounded text-zinc-300">
+          {{ question.points }} ball
+        </span>
+      </div>
+    </div>
+
+    <!-- 1. Question Body -->
+    <div class="prose prose-invert max-w-none text-zinc-200 text-sm font-sans mb-6">
+      {{ question.content|markdown_safe }}
+    </div>
+
+    <!-- 2. Optional Image (Question body -> Image -> Options) -->
+    {% if question.imagePath %}
+      <div class="my-6 border border-zinc-800/80 rounded bg-zinc-900/40 p-2 flex flex-col items-center" id="image-container">
+        <a href="#modal-image" class="block cursor-zoom-in">
+          <img src="{{ asset(question.imagePath) }}" 
+               alt="{{ question.imageAlt|default('Savol diagrammasi') }}" 
+               class="max-h-80 w-auto object-contain rounded" />
+        </a>
+        <p class="text-[11px] text-zinc-500 mt-2 font-mono">Kattalashtirish uchun rasm ustiga bosing (Ver: {{ question.imageVersion }})</p>
+      </div>
+
+      <!-- Accessible modal for enlarged image -->
+      <div id="modal-image" class="hidden target:flex fixed inset-0 z-50 bg-black/90 backdrop-blur-sm p-4 items-center justify-center">
+        <div class="relative max-w-4xl max-h-[90vh]">
+          <a href="#image-container" class="absolute -top-10 right-0 text-white font-mono text-sm hover:text-zinc-300">✕ Yopish (Esc)</a>
+          <img src="{{ asset(question.imagePath) }}" alt="{{ question.imageAlt }}" class="max-h-[85vh] w-auto object-contain border border-zinc-700 rounded" />
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- 3. Answer Options -->
+    <div class="space-y-3 mt-6">
+      <h3 class="text-xs text-zinc-400 uppercase tracking-wider mb-2">Javob variantlari:</h3>
+      {% for option in question.options %}
+        <div class="flex items-center p-3 rounded border {% if option.isCorrect %}border-emerald-700/80 bg-emerald-950/20 text-emerald-200{% else %}border-zinc-800 bg-zinc-900/50 text-zinc-300{% endif %}">
+          <span class="w-6 h-6 flex items-center justify-center rounded-full border border-zinc-700 font-mono text-xs mr-3">
+            {{ loop.index == 1 ? 'A' : (loop.index == 2 ? 'B' : (loop.index == 3 ? 'C' : 'D')) }}
+          </span>
+          <span class="text-sm font-sans flex-1">{{ option.content }}</span>
+          {% if option.isCorrect %}
+            <span class="text-xs text-emerald-400 font-mono uppercase ml-2">[To'g'ri javob]</span>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="text-xs text-zinc-500 italic">Hozircha javob variantlari kiritilmagan.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Organizer Explanation (Admin Preview only) -->
+    {% if question.explanation %}
+      <div class="mt-8 pt-6 border-t border-zinc-800">
+        <h4 class="text-xs text-zinc-400 uppercase tracking-wider mb-2">Tashkilotchilar uchun izoh:</h4>
+        <div class="p-3 bg-zinc-900/60 border border-zinc-800 rounded text-xs text-zinc-400 font-sans leading-relaxed">
+          {{ question.explanation|nl2br }}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Footer Back Link -->
+    <div class="mt-8 pt-4 border-t border-zinc-800/60 flex justify-between">
+      <a href="{{ path('admin') }}" class="text-xs text-zinc-400 hover:text-zinc-100">
+        ← Boshqaruv paneliga qaytish
+      </a>
+      <span class="text-xs text-zinc-600 font-mono">STATUS: {{ question.status|upper }}</span>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

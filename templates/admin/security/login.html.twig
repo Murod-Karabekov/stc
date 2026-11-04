@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administrator — Tizimga kirish{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden">
+  
+  <div class="absolute inset-0 z-0 pointer-events-none scanlines opacity-20"></div>
+
+  <div class="relative z-10 w-full max-w-sm border border-zinc-800 bg-zinc-950/90 p-8 rounded-sm shadow-2xl backdrop-blur-md">
+    
+    <div class="mb-6 border-b border-zinc-800/80 pb-4">
+      <div class="flex items-center space-x-2 mb-1">
+        <span class="w-2 h-2 rounded-full bg-zinc-400"></span>
+        <h1 class="font-mono text-xs tracking-[0.2em] text-zinc-300 uppercase">JDPU STC // ADMIN</h1>
+      </div>
+      <p class="font-mono text-[11px] text-zinc-500">Administrator boshqaruv paneli</p>
+    </div>
+
+    {% if error %}
+      <div class="mb-6 p-3 bg-red-950/40 border border-red-900/60 rounded text-red-300 font-mono text-xs">
+        Kirishda xatolik: Login yoki parol noto'g'ri.
+      </div>
+    {% endif %}
+
+    <form action="{{ path('app_admin_login') }}" method="post" class="space-y-5">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+      <div>
+        <label for="username" class="block font-mono text-xs text-zinc-400 uppercase tracking-wider mb-2">
+          Login / Identifikator
+        </label>
+        <input type="text" 
+               id="username" 
+               name="_username" 
+               value="{{ last_username }}" 
+               required 
+               autofocus 
+               autocomplete="username"
+               class="w-full px-3 py-2.5 bg-zinc-900/80 border border-zinc-700/80 rounded-sm text-zinc-100 font-mono text-xs focus:outline-none focus:border-zinc-400 transition-colors" />
+      </div>
+
+      <div>
+        <label for="password" class="block font-mono text-xs text-zinc-400 uppercase tracking-wider mb-2">
+          Maxfiy parol
+        </label>
+        <input type="password" 
+               id="password" 
+               name="_password" 
+               required 
+               autocomplete="current-password"
+               class="w-full px-3 py-2.5 bg-zinc-900/80 border border-zinc-700/80 rounded-sm text-zinc-100 font-mono text-xs focus:outline-none focus:border-zinc-400 transition-colors" />
+      </div>
+
+      <button type="submit" 
+              class="w-full py-2.5 px-4 bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-xs font-semibold tracking-wider uppercase rounded-sm transition-colors cursor-pointer mt-2">
+        Kirish ↵
+      </button>
+
+      <div class="text-center pt-2">
+        <a href="{{ path('app_home') }}" class="font-mono text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors">
+          ← Bosh sahifaga qaytish
+        </a>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
