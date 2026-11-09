@@ -159,12 +159,21 @@ final class CandidateController extends AbstractController
             $savedAnswers[$ans->getQuestionId()] = $ans->getSelectedOptionId();
         }
 
+        // Allowlist: strip admin-only fields (correct_option_id) before passing to template
+        $flip = array_flip(['question_id', 'display_number', 'section_id', 'section_title',
+            'section_position', 'content', 'image_path', 'image_alt', 'image_version',
+            'image_source_type', 'points', 'options']);
+        $candidateSnapshot = array_map(
+            fn(array $q) => array_intersect_key($q, $flip),
+            $attempt->getQuestionSnapshot()
+        );
+
         return $this->render('candidate/exam.html.twig', [
             'attempt' => $attempt,
             'exam' => $exam,
             'remainingSeconds' => $remainingSeconds,
             'savedAnswers' => $savedAnswers,
-            'questionsSnapshot' => $attempt->getQuestionSnapshot(),
+            'questionsSnapshot' => $candidateSnapshot,
         ]);
     }
 

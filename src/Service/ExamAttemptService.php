@@ -249,41 +249,57 @@ final class ExamAttemptService
     }
 
     /**
-     * Calculates attempt total and per-section scores server-side.
+     * Calculates attempt total and per-section scores using the immutable snapshot key.
+     * Falls back to live DB only for legacy attempts that pre-date the snapshot key.
      */
     private function calculateScores(ExamAttempt $attempt): void
     {
-        $exam = $attempt->getExam();
-        $questions = $this->questionRepository->findBy(['exam' => $exam]);
-        $questionsById = [];
-        foreach ($questions as $q) {
-            $questionsById[$q->getId()] = $q;
+        $snapshot = $attempt->getQuestionSnapshot();
+
+        // Index snapshot by question id
+        $snapshotByQid = [];
+        foreach ($snapshot as $entry) {
+            $snapshotByQid[(int) $entry['question_id']] = $entry;
+        }
+
+        // For legacy attempts without correct_option_id, load correct options from DB
+        $legacyQids = [];
+        foreach ($snapshotByQid as $qId => $entry) {
+            if (!isset($entry['correct_option_id'])) {
+                $legacyQids[] = $qId;
+            }
+        }
+        $liveCorrectOptions = [];
+        if (!empty($legacyQids)) {
+            foreach ($this->questionRepository->findBy(['id' => $legacyQids]) as $q) {
+                $liveCorrectOptions[$q->getId()] = $q->getCorrectOption()?->getId();
+            }
         }
 
         $answerRepo = $this->entityManager->getRepository(AttemptAnswer::class);
-        $answers = $answerRepo->findBy(['attempt' => $attempt]);
-        $answersByQuestionId = [];
-        foreach ($answers as $ans) {
-            $answersByQuestionId[$ans->getQuestionId()] = $ans;
+        $answersByQid = [];
+        foreach ($answerRepo->findBy(['attempt' => $attempt]) as $ans) {
+            $answersByQid[$ans->getQuestionId()] = $ans;
         }
 
         $totalScore = 0;
         $sectionScores = [];
 
-        foreach ($questionsById as $qId => $q) {
-            $sectionPos = $q->getSection() ? (string) $q->getSection()->getPosition() : '1';
+        foreach ($snapshotByQid as $qId => $entry) {
+            $sectionPos = (string) ($entry['section_position'] ?? '1');
             if (!isset($sectionScores[$sectionPos])) {
                 $sectionScores[$sectionPos] = 0;
             }
 
-            $ans = $answersByQuestionId[$qId] ?? null;
-            $correctOpt = $q->getCorrectOption();
+            $correctOptionId = $entry['correct_option_id'] ?? $liveCorrectOptions[$qId] ?? null;
+            $points = (int) ($entry['points'] ?? 1);
+            $ans = $answersByQid[$qId] ?? null;
 
-            if ($ans !== null && $correctOpt !== null && $ans->getSelectedOptionId() === $correctOpt->getId()) {
+            if ($ans !== null && $correctOptionId !== null && $ans->getSelectedOptionId() === $correctOptionId) {
                 $ans->setIsCorrect(true);
-                $ans->setPointsAwarded($q->getPoints());
-                $totalScore += $q->getPoints();
-                $sectionScores[$sectionPos] += $q->getPoints();
+                $ans->setPointsAwarded($points);
+                $totalScore += $points;
+                $sectionScores[$sectionPos] += $points;
             } else {
                 if ($ans !== null) {
                     $ans->setIsCorrect(false);
