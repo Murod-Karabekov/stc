@@ -1,10 +1,67 @@
 {% extends 'base.html.twig' %}
-{% block title %}Saralash — Yakunlandi{% endblock %}
+{% block title %}JDPU STC — Test yakunlandi{% endblock %}
 {% block body %}
-<div class="min-h-screen bg-[#08080a] text-zinc-100 flex items-center justify-center p-6">
-  <div class="max-w-md w-full border border-zinc-800 bg-zinc-950/80 p-8 rounded-sm font-mono text-sm text-center">
-    <h2 class="text-base text-zinc-200 tracking-wider uppercase mb-4">Javoblaringiz qabul qilindi</h2>
-    <p class="text-zinc-400">Natijalar e’lon qilinadi.</p>
+<div class="min-h-screen bg-[#08080a] text-zinc-100 flex flex-col justify-center items-center px-4 py-16 relative overflow-hidden">
+  <div class="absolute inset-0 z-0 pointer-events-none scanlines opacity-20"></div>
+
+  <div class="relative z-10 w-full max-w-md border border-zinc-800 bg-zinc-950/90 rounded-sm shadow-2xl backdrop-blur-md overflow-hidden">
+
+    <div class="border-b border-zinc-800 px-7 py-5">
+      <div class="flex items-center space-x-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="font-mono text-[11px] tracking-[0.2em] text-zinc-300 uppercase">JDPU STC // SARALASH 2026</span>
+      </div>
+    </div>
+
+    <div class="px-7 py-8 text-center">
+      <div class="w-14 h-14 mx-auto mb-5 border border-zinc-700 rounded-full flex items-center justify-center">
+        <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+
+      <h1 class="font-mono text-sm text-zinc-200 uppercase tracking-wider mb-3">
+        Javoblaringiz qabul qilindi
+      </h1>
+
+      <p class="font-mono text-xs text-zinc-400 leading-relaxed mb-5">
+        Test muvaffaqiyatli topshirildi. Natijalar yaqin orada e'lon qilinadi.
+      </p>
+
+      {% if attempt %}
+        <div class="mb-5 p-3.5 border border-zinc-800 bg-zinc-900/50 rounded-sm font-mono text-[11px] text-zinc-500 space-y-1 text-left">
+          <div>Nomzod kodi: <span class="text-zinc-300">{{ attempt.candidateCode }}</span></div>
+          <div>Holat:
+            {% if attempt.isSubmitted %}
+              <span class="text-emerald-400">Topshirildi</span>
+            {% elseif attempt.isExpired %}
+              <span class="text-amber-400">Vaqt tugadi (avtomatik)</span>
+            {% else %}
+              <span class="text-zinc-400">{{ attempt.status }}</span>
+            {% endif %}
+          </div>
+          {% if attempt.submittedAt %}
+            <div>Vaqt: <span class="text-zinc-300">{{ attempt.submittedAt|date('H:i, d.m.Y', 'Asia/Tashkent') }}</span></div>
+          {% endif %}
+          {% if exam and exam.isPublished %}
+            <div class="pt-2 border-t border-zinc-800">
+              Ball: <span class="text-zinc-200 font-semibold">{{ attempt.totalScore }} / {{ attempt.maxScore }}</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <p class="font-mono text-[11px] text-zinc-600 leading-relaxed">
+        Agar savollaringiz bo'lsa, administrator bilan bog'laning.
+      </p>
+    </div>
+
+    <div class="border-t border-zinc-800 px-7 py-4 text-center">
+      <a href="{{ path('app_home') }}" class="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+        ← Bosh sahifaga qaytish
+      </a>
+    </div>
+
   </div>
 </div>
 {% endblock %}

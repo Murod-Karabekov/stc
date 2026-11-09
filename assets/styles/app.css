@@ -40,3 +40,15 @@
   mask-image: radial-gradient(circle at 50% 40%, black 50%, rgba(0, 0, 0, 0.6) 75%, transparent 100%);
   -webkit-mask-image: radial-gradient(circle at 50% 40%, black 50%, rgba(0, 0, 0, 0.6) 75%, transparent 100%);
 }
+
+/* Exam content: restrict copy-select as copying deterrent */
+.exam-content {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Option label selected state */
+.option-label:has(input:checked) {
+  border-color: rgb(161 161 170);
+  background-color: rgb(39 39 42 / 0.7);
+}

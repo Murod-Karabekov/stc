@@ -1,9 +1,253 @@
 {% extends 'base.html.twig' %}
 {% block title %}Saralash — Test{% endblock %}
 {% block body %}
-<div class="min-h-screen bg-[#08080a] text-zinc-100 flex items-center justify-center p-6">
-  <div class="max-w-md w-full border border-zinc-800 bg-zinc-950/80 p-8 rounded-sm font-mono text-sm">
-    <h2 class="text-base text-zinc-200 tracking-wider uppercase mb-4">Saralash testi</h2>
+{#
+  questionsSnapshot: array of {question_id, display_number, section_id, section_title, content, image_path, image_alt, image_version, points, options: [{id, content, position}]}
+  savedAnswers: {question_id: selected_option_id}
+  remainingSeconds: int
+  attempt: ExamAttempt
+#}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 flex flex-col"
+     data-controller="exam"
+     data-exam-remaining-seconds-value="{{ remainingSeconds }}"
+     data-exam-save-url-value="{{ path('app_candidate_exam_save') }}"
+     data-exam-submit-url-value="{{ path('app_candidate_exam_submit') }}"
+     data-exam-telemetry-url-value="{{ path('app_candidate_exam_telemetry') }}"
+     data-exam-candidate-code-value="{{ attempt.candidateCode }}">
+
+  <!-- Scanline overlay -->
+  <div class="fixed inset-0 z-0 pointer-events-none scanlines opacity-15"></div>
+
+  <!-- TOP BAR: branding + timer + submit -->
+  <header class="fixed top-0 inset-x-0 z-30 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur-md">
+    <div class="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between gap-4">
+
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="font-mono text-[11px] text-zinc-500 uppercase tracking-widest hidden sm:block">JDPU STC</span>
+        <span class="text-zinc-700 hidden sm:block">/</span>
+        <span class="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Saralash testi</span>
+      </div>
+
+      <!-- Candidate code watermark -->
+      <span class="font-mono text-[10px] text-zinc-700 tracking-widest select-none hidden md:block"
+            aria-hidden="true">{{ attempt.candidateCode }}</span>
+
+      <div class="flex items-center gap-4 shrink-0">
+        <!-- Autosave indicator -->
+        <span data-exam-target="saveStatus"
+              class="font-mono text-[11px] text-zinc-600 hidden sm:block" aria-live="polite"></span>
+
+        <!-- Timer -->
+        <div class="flex items-center gap-2 font-mono text-sm text-zinc-200" aria-live="polite" aria-label="Qolgan vaqt">
+          <svg class="w-3.5 h-3.5 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+          </svg>
+          <span data-exam-target="timer" class="tabular-nums">--:--</span>
+        </div>
+
+        <!-- Submit button -->
+        <button type="button"
+                data-action="click->exam#confirmSubmit"
+                data-exam-target="submitBtn"
+                class="px-4 py-1.5 bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-[11px] font-bold tracking-wider uppercase rounded-sm transition-all shadow cursor-pointer">
+          Topshirish
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="h-0.5 bg-zinc-900">
+      <div data-exam-target="progressBar" class="h-full bg-zinc-500 transition-all duration-300" style="width:0%"></div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="flex flex-1 pt-12">
+
+    <!-- SIDEBAR: section + question nav (desktop) -->
+    <aside class="hidden lg:flex flex-col w-56 shrink-0 border-r border-zinc-800 bg-zinc-950/80 fixed left-0 top-12 bottom-0 overflow-y-auto z-20">
+      <div class="p-4 space-y-4 font-mono text-xs">
+        {% set currentSection = '' %}
+        {% for q in questionsSnapshot %}
+          {% if q.section_title != currentSection %}
+            {% set currentSection = q.section_title %}
+            <div class="pt-2 pb-1 text-[10px] text-zinc-500 uppercase tracking-wider border-b border-zinc-800/60">
+              {{ q.section_title }}
+            </div>
+          {% endif %}
+          <button type="button"
+                  data-action="click->exam#goToQuestion"
+                  data-question-index="{{ loop.index0 }}"
+                  data-exam-target="navBtn"
+                  data-qid="{{ q.question_id }}"
+                  class="w-full text-left px-2 py-1 rounded-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors question-nav-btn"
+                  aria-label="Savol {{ q.display_number }}">
+            <span class="text-zinc-600 mr-1">{{ q.display_number }}.</span>
+            <span class="truncate">S{{ q.display_number }}</span>
+          </button>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <!-- QUESTION AREA -->
+    <main class="flex-1 lg:ml-56 max-w-3xl mx-auto w-full px-4 py-6 pb-24">
+
+      <!-- Mobile: question progress pills -->
+      <div class="lg:hidden mb-4 flex flex-wrap gap-1.5" role="navigation" aria-label="Savollar">
+        {% for q in questionsSnapshot %}
+          <button type="button"
+                  data-action="click->exam#goToQuestion"
+                  data-question-index="{{ loop.index0 }}"
+                  data-exam-target="navBtn"
+                  data-qid="{{ q.question_id }}"
+                  class="w-7 h-7 font-mono text-[11px] border border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors rounded-sm question-nav-btn"
+                  aria-label="Savol {{ q.display_number }}">
+            {{ q.display_number }}
+          </button>
+        {% endfor %}
+      </div>
+
+      <!-- Questions container (all rendered, one shown at a time) -->
+      {% for q in questionsSnapshot %}
+        <div data-exam-target="questionCard"
+             data-qid="{{ q.question_id }}"
+             class="question-card {% if not loop.first %}hidden{% endif %}"
+             aria-label="Savol {{ q.display_number }}"
+             role="group">
+
+          <!-- Section label + number -->
+          <div class="mb-4 flex items-center gap-3">
+            <span class="font-mono text-[11px] text-zinc-500 uppercase tracking-wider">{{ q.section_title }}</span>
+            <span class="font-mono text-[11px] text-zinc-700">·</span>
+            <span class="font-mono text-[11px] text-zinc-500">{{ q.display_number }} / {{ questionsSnapshot|length }}</span>
+          </div>
+
+          <!-- Question content (no-select anti-cheat) -->
+          <div class="mb-5 p-4 border border-zinc-800 bg-zinc-900/60 rounded-sm exam-content text-sm text-zinc-200 leading-relaxed"
+               oncontextmenu="return false;">
+            {{ q.content|nl2br }}
+          </div>
+
+          <!-- Optional question image -->
+          {% if q.image_path %}
+            <div class="mb-5">
+              <img src="{{ asset('uploads/' ~ q.image_path ~ '?v=' ~ q.image_version) }}"
+                   alt="{{ q.image_alt|default('Savol diagrammasi') }}"
+                   class="max-w-full border border-zinc-800 rounded-sm cursor-zoom-in max-h-72 object-contain bg-zinc-900"
+                   loading="lazy"
+                   data-action="click->exam#openImageModal" />
+            </div>
+          {% endif %}
+
+          <!-- Options -->
+          <fieldset class="space-y-2.5" aria-label="Javob variantlari">
+            <legend class="sr-only">Savol {{ q.display_number }} uchun javob tanlang</legend>
+            {% set savedOption = savedAnswers[q.question_id]|default(null) %}
+            {% for opt in q.options %}
+              <label class="flex items-start gap-3 p-3.5 border border-zinc-800 hover:border-zinc-600 bg-zinc-900/40 hover:bg-zinc-800/50 rounded-sm cursor-pointer transition-all group option-label"
+                     data-qid="{{ q.question_id }}"
+                     data-oid="{{ opt.id }}">
+                <input type="radio"
+                       name="q_{{ q.question_id }}"
+                       value="{{ opt.id }}"
+                       {% if savedOption == opt.id %}checked{% endif %}
+                       class="mt-0.5 shrink-0 accent-zinc-200 w-4 h-4"
+                       data-action="change->exam#answerChanged"
+                       data-qid="{{ q.question_id }}"
+                       data-oid="{{ opt.id }}"
+                       aria-label="{{ opt.content }}" />
+                <span class="font-mono text-xs text-zinc-300 group-hover:text-zinc-100 leading-relaxed exam-content">{{ opt.content }}</span>
+              </label>
+            {% endfor %}
+          </fieldset>
+
+          <!-- Navigation buttons -->
+          <div class="mt-6 flex items-center justify-between">
+            <button type="button"
+                    data-action="click->exam#prevQuestion"
+                    class="font-mono text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    {% if loop.first %}disabled{% endif %}>
+              ← Oldingi
+            </button>
+            <span class="font-mono text-[11px] text-zinc-700">{{ q.display_number }}/{{ questionsSnapshot|length }}</span>
+            <button type="button"
+                    data-action="click->exam#nextQuestion"
+                    class="font-mono text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    {% if loop.last %}disabled{% endif %}>
+              Keyingi →
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+
+    </main>
   </div>
+
+  <!-- UNANSWERED COUNT badge (mobile fixed bottom) -->
+  <div class="lg:hidden fixed bottom-4 left-4 font-mono text-[11px] text-zinc-600 bg-zinc-950/90 border border-zinc-800 px-3 py-1.5 rounded-sm backdrop-blur-md">
+    Javob berilmagan: <span data-exam-target="unansweredCount">{{ questionsSnapshot|length }}</span>
+  </div>
+
+  <!-- IMAGE MODAL -->
+  <div data-exam-target="imageModal"
+       class="hidden fixed inset-0 z-50 bg-zinc-950/95 flex items-center justify-center p-4"
+       role="dialog" aria-modal="true" aria-label="Rasm kattaroq ko'rinishi">
+    <button type="button"
+            data-action="click->exam#closeImageModal"
+            class="absolute top-4 right-4 font-mono text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-700 px-3 py-1.5 rounded-sm transition-colors"
+            aria-label="Yopish">
+      ✕ Yopish
+    </button>
+    <img data-exam-target="modalImage" src="" alt="" class="max-w-full max-h-[85vh] object-contain border border-zinc-800 rounded-sm" />
+  </div>
+
+  <!-- CONFIRM SUBMIT MODAL -->
+  <div data-exam-target="confirmModal"
+       class="hidden fixed inset-0 z-50 bg-zinc-950/95 flex items-center justify-center p-4"
+       role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+    <div class="w-full max-w-sm border border-zinc-800 bg-zinc-950 rounded-sm p-7 font-mono shadow-2xl">
+      <h2 id="confirm-modal-title" class="text-sm text-zinc-200 uppercase tracking-wider mb-4">Testni topshirasizmi?</h2>
+      <p class="text-xs text-zinc-400 mb-2">Javob berilmagan: <strong data-exam-target="modalUnanswered" class="text-zinc-200">0</strong> ta</p>
+      <p class="text-xs text-zinc-500 mb-6 leading-relaxed">Topshirgandan so'ng javoblarni o'zgartirib bo'lmaydi.</p>
+      <div class="flex gap-3">
+        <form method="POST" action="{{ path('app_candidate_exam_submit') }}" class="flex-1" data-exam-target="submitForm">
+          <input type="hidden" name="_token" value="{{ csrf_token('submit_exam') }}" />
+          <button type="submit"
+                  data-exam-target="confirmSubmitBtn"
+                  class="w-full py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-xs font-bold tracking-wider uppercase rounded-sm transition-all cursor-pointer">
+            Ha, topshirish
+          </button>
+        </form>
+        <button type="button"
+                data-action="click->exam#cancelSubmit"
+                class="flex-1 py-2.5 border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 font-mono text-xs tracking-wider uppercase rounded-sm transition-all cursor-pointer">
+          Bekor qilish
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIME EXPIRED MODAL -->
+  <div data-exam-target="expiredModal"
+       class="hidden fixed inset-0 z-50 bg-zinc-950/98 flex items-center justify-center p-4"
+       role="alertdialog" aria-modal="true" aria-labelledby="expired-modal-title">
+    <div class="w-full max-w-sm border border-zinc-700 bg-zinc-950 rounded-sm p-7 font-mono shadow-2xl text-center">
+      <h2 id="expired-modal-title" class="text-sm text-zinc-200 uppercase tracking-wider mb-3">Vaqt tugadi</h2>
+      <p class="text-xs text-zinc-400 mb-6 leading-relaxed">Test vaqti tugadi. Javoblaringiz serverda saqlanmoqda.</p>
+      <form method="POST" action="{{ path('app_candidate_exam_submit') }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('submit_exam') }}" />
+        <button type="submit"
+                class="w-full py-2.5 bg-zinc-100 hover:bg-white text-zinc-950 font-mono text-xs font-bold tracking-wider uppercase rounded-sm transition-all cursor-pointer">
+          Davom etish →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Hidden data for JS -->
+  <script type="application/json" id="exam-saved-answers">{{ savedAnswers|json_encode|raw }}</script>
+  <script type="application/json" id="exam-question-count">{{ questionsSnapshot|length }}</script>
+
 </div>
 {% endblock %}

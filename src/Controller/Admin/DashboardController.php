@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\AttemptReset;
-use App\Entity\Exam;
-use App\Entity\ExamAttempt;
-use App\Entity\Question;
-use App\Entity\Section;
-use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -47,13 +41,13 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Boshqaruv', 'fa fa-home');
 
         yield MenuItem::section('Imtihon va Savollar');
-        yield MenuItem::linkToCrud('Imtihonlar', 'fa fa-file-text', Exam::class);
-        yield MenuItem::linkToCrud('Bo\'limlar', 'fa fa-folder', Section::class);
-        yield MenuItem::linkToCrud('Savollar banki', 'fa fa-question-circle', Question::class);
+        yield MenuItem::linkTo('Imtihonlar', 'fa fa-file-text', ExamCrudController::class)->setAction('index');
+        yield MenuItem::linkTo('Bo\'limlar', 'fa fa-folder', SectionCrudController::class)->setAction('index');
+        yield MenuItem::linkTo('Savollar banki', 'fa fa-question-circle', QuestionCrudController::class)->setAction('index');
 
         yield MenuItem::section('Nomzodlar va Natijalar');
-        yield MenuItem::linkToCrud('Urinishlar va natijalar', 'fa fa-users', ExamAttempt::class);
-        yield MenuItem::linkToCrud('Auditorlik qayta tiklashlar', 'fa fa-history', AttemptReset::class);
+        yield MenuItem::linkTo('Urinishlar va natijalar', 'fa fa-users', ExamAttemptCrudController::class)->setAction('index');
+        yield MenuItem::linkTo('Auditorlik qayta tiklashlar', 'fa fa-history', AttemptResetCrudController::class)->setAction('index');
 
         yield MenuItem::section('Tizim');
         yield MenuItem::linkToUrl('Natijalar CSV eksporti', 'fa fa-download', '/admin/export/csv');
