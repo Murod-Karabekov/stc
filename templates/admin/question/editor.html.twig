@@ -85,11 +85,17 @@
                   class="w-full bg-zinc-900 border {{ errors.content is defined ? 'border-red-600' : 'border-zinc-700' }} rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400 resize-y"
                   placeholder="Savol matnini kiriting…">{{ f.content }}</textarea>
 
-        {# Image preview #}
+        {# Image preview — use thumbnail (.webp → _thumb.webp) when available #}
+        {% set f_preview_src = '' %}
+        {% if f.image_path %}
+          {% set f_preview_src = f.image_path ends with '.webp'
+            ? f.image_path|replace({'.webp': '_thumb.webp'})
+            : f.image_path %}
+        {% endif %}
         <div id="img-preview-wrap" class="{{ f.image_path ? '' : 'hidden' }} mt-2">
           <div class="relative inline-block">
             {% if f.image_path %}
-              <img id="img-preview" src="/{{ f.image_path }}" alt="Rasm" width="200"
+              <img id="img-preview" src="/{{ f_preview_src }}" alt="Rasm" width="200"
                    class="rounded border border-zinc-700 max-h-40 object-contain">
             {% else %}
               <img id="img-preview" src="" alt="Rasm" width="200"
@@ -255,7 +261,7 @@
     });
     const json = await res.json();
     if (json.error) { setStatus('Xato: ' + json.error); return; }
-    setImage(json.path, '');
+    setImage(json.path, json.thumbPath);
     setStatus('');
   }
 
@@ -270,17 +276,17 @@
     });
     const json = await res.json();
     if (json.error) { setStatus('Xato: ' + json.error); return; }
-    setImage(json.path, '');
+    setImage(json.path, json.thumbPath);
     setStatus('');
     document.getElementById('img-url-row').classList.add('hidden');
   }
 
-  function setImage(path, alt) {
+  function setImage(path, thumbPath) {
     document.getElementById('image_path_input').value = path;
     const wrap = document.getElementById('img-preview-wrap');
     const img  = document.getElementById('img-preview');
     if (path) {
-      img.src = '/' + path;
+      img.src = '/' + (thumbPath || path);
       img.classList.remove('hidden');
       wrap.classList.remove('hidden');
     } else {

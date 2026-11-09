@@ -30,8 +30,7 @@ final class QuestionImageController extends AbstractController
         }
 
         try {
-            $path = $this->imageService->processUpload($file);
-            return $this->json(['path' => $path]);
+            return $this->json($this->imageService->processUpload($file));
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], 422);
         }
@@ -50,8 +49,7 @@ final class QuestionImageController extends AbstractController
         }
 
         try {
-            $path = $this->imageService->processUrl($url);
-            return $this->json(['path' => $path]);
+            return $this->json($this->imageService->processUrl($url));
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], 422);
         }

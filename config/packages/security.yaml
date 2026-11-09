@@ -28,6 +28,7 @@ security:
             logout:
                 path: app_admin_logout
                 target: app_admin_login
+                enable_csrf: true
 
     access_control:
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }

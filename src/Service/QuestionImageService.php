@@ -29,25 +29,23 @@ final class QuestionImageService
     }
 
     /**
-     * Validates and saves an uploaded question image.
-     * Re-encodes image or strips metadata and returns the relative path.
+     * Validates and saves an uploaded question image as WebP with a thumbnail.
      *
+     * @return array{path: string, thumbPath: string}
      * @throws \InvalidArgumentException
      */
-    public function processUpload(UploadedFile $file): string
+    public function processUpload(UploadedFile $file): array
     {
         if ($file->getSize() > self::MAX_FILE_SIZE) {
             throw new \InvalidArgumentException('Rasm hajmi 5MB dan oshmasligi kerak.');
         }
 
-        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $finfo    = new \finfo(FILEINFO_MIME_TYPE);
         $realMime = $finfo->file($file->getPathname());
 
         if (!isset(self::ALLOWED_MIME_TYPES[$realMime])) {
             throw new \InvalidArgumentException('Faqat PNG, JPEG va WebP formatdagi rasmlar qabul qilinadi. SVG yoki boshqa fayllar taqiqlangan.');
         }
-
-        $ext = self::ALLOWED_MIME_TYPES[$realMime];
 
         $imageInfo = @getimagesize($file->getPathname());
         if ($imageInfo === false) {
@@ -56,49 +54,33 @@ final class QuestionImageService
 
         [$width, $height] = $imageInfo;
         if ($width > self::MAX_DIMENSION || $height > self::MAX_DIMENSION) {
-            throw new \InvalidArgumentException(sprintf('Rasm o\'lchami juda katta (%dx%d). Ruxsat etilgan maksimal o\'lcham: %dx%d.', $width, $height, self::MAX_DIMENSION, self::MAX_DIMENSION));
+            throw new \InvalidArgumentException(sprintf(
+                'Rasm o\'lchami juda katta (%dx%d). Ruxsat etilgan maksimal o\'lcham: %dx%d.',
+                $width, $height, self::MAX_DIMENSION, self::MAX_DIMENSION
+            ));
         }
 
-        // Generate server-controlled cryptographic filename
-        $safeFilename = sprintf('q_%s_%s.%s', bin2hex(random_bytes(12)), time(), $ext);
-        $targetPath = $this->uploadDir . '/' . $safeFilename;
-
-        // Re-encode or safely move to strip executable blobs
-        $reencoded = false;
-        if (function_exists('imagecreatefromstring')) {
-            $raw = file_get_contents($file->getPathname());
-            if ($raw !== false) {
-                $im = @imagecreatefromstring($raw);
-                if ($im !== false) {
-                    if ($ext === 'jpg') {
-                        imagejpeg($im, $targetPath, 90);
-                        $reencoded = true;
-                    } elseif ($ext === 'png') {
-                        imagepng($im, $targetPath, 8);
-                        $reencoded = true;
-                    } elseif ($ext === 'webp' && function_exists('imagewebp')) {
-                        imagewebp($im, $targetPath, 90);
-                        $reencoded = true;
-                    }
-                    imagedestroy($im);
-                }
-            }
+        $raw = file_get_contents($file->getPathname());
+        if ($raw === false) {
+            throw new \InvalidArgumentException('Fayl o\'qib bo\'lmadi.');
         }
 
-        if (!$reencoded) {
-            $file->move($this->uploadDir, $safeFilename);
-        }
+        $safeBase = sprintf('q_%s_%s', bin2hex(random_bytes(12)), time());
+        $this->saveWebpWithThumb($raw, $file->getPathname(), $realMime, $safeBase);
 
-        return 'uploads/questions/' . $safeFilename;
+        return [
+            'path'      => 'uploads/questions/' . $safeBase . '.webp',
+            'thumbPath' => 'uploads/questions/' . $safeBase . '_thumb.webp',
+        ];
     }
 
     /**
-     * Downloads an image from a public URL with SSRF protection and saves it.
-     * Returns the relative path like processUpload().
+     * Downloads an image from a public URL with SSRF protection and saves it as WebP with a thumbnail.
      *
-     * @throws \InvalidArgumentException on SSRF, bad MIME, size, or network errors
+     * @return array{path: string, thumbPath: string}
+     * @throws \InvalidArgumentException
      */
-    public function processUrl(string $url): string
+    public function processUrl(string $url): array
     {
         $parsed = parse_url($url);
         if (!isset($parsed['scheme'], $parsed['host']) || !in_array($parsed['scheme'], ['http', 'https'], true)) {
@@ -119,7 +101,6 @@ final class QuestionImageService
                 throw new \InvalidArgumentException("Havola rasm emas yoki qo'llab-quvvatlanmaydigan format.");
             }
 
-            $ext  = self::ALLOWED_MIME_TYPES[$mime];
             $info = @getimagesize($tmp);
             if ($info === false) {
                 throw new \InvalidArgumentException("Yuklab olingan fayl haqiqiy tasvir emas.");
@@ -129,17 +110,109 @@ final class QuestionImageService
                 throw new \InvalidArgumentException(sprintf("Rasm o'lchami juda katta (%dx%d).", $w, $h));
             }
 
-            $safeFilename = sprintf('q_%s_%s.%s', bin2hex(random_bytes(12)), time(), $ext);
-            $target       = $this->uploadDir . '/' . $safeFilename;
-            rename($tmp, $target);
-            chmod($target, 0644);
+            $safeBase = sprintf('q_%s_%s', bin2hex(random_bytes(12)), time());
+            $this->saveWebpWithThumb($body, $tmp, $mime, $safeBase);
 
-            return 'uploads/questions/' . $safeFilename;
+            return [
+                'path'      => 'uploads/questions/' . $safeBase . '.webp',
+                'thumbPath' => 'uploads/questions/' . $safeBase . '_thumb.webp',
+            ];
         } finally {
             if (file_exists($tmp)) {
                 @unlink($tmp);
             }
         }
+    }
+
+    public function deleteImage(?string $relativePath): void
+    {
+        if (!$relativePath) {
+            return;
+        }
+
+        $filename = basename($relativePath);
+        $fullPath = $this->uploadDir . '/' . $filename;
+        if (file_exists($fullPath)) {
+            @unlink($fullPath);
+        }
+
+        // Delete thumbnail variant (q_xxx_timestamp_thumb.webp)
+        $info     = pathinfo($filename);
+        $thumbFile = $info['filename'] . '_thumb.webp';
+        $thumbFull = $this->uploadDir . '/' . $thumbFile;
+        if (file_exists($thumbFull)) {
+            @unlink($thumbFull);
+        }
+    }
+
+    // ── Private helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Loads raw image bytes into GD, normalises EXIF orientation, preserves
+     * alpha, then writes main WebP (quality 85) and a 300px-wide thumbnail (quality 70).
+     */
+    private function saveWebpWithThumb(string $rawBytes, string $filePath, string $mime, string $safeBase): void
+    {
+        $im = @imagecreatefromstring($rawBytes);
+        if ($im === false) {
+            throw new \InvalidArgumentException("Rasmni o'qib bo'lmadi.");
+        }
+
+        imagealphablending($im, false);
+        imagesavealpha($im, true);
+
+        if ($mime === 'image/jpeg') {
+            $im = $this->applyExifOrientation($im, $filePath);
+        }
+
+        $mainPath = $this->uploadDir . '/' . $safeBase . '.webp';
+        imagewebp($im, $mainPath, 85);
+        chmod($mainPath, 0644);
+
+        $w         = imagesx($im);
+        $thumbPath = $this->uploadDir . '/' . $safeBase . '_thumb.webp';
+        if ($w > 300) {
+            $h     = imagesy($im);
+            $newH  = (int) round($h * 300 / $w);
+            $thumb = imagescale($im, 300, $newH, IMG_BICUBIC);
+            if ($thumb !== false) {
+                imagealphablending($thumb, false);
+                imagesavealpha($thumb, true);
+                imagewebp($thumb, $thumbPath, 70);
+                imagedestroy($thumb);
+            } else {
+                imagewebp($im, $thumbPath, 70);
+            }
+        } else {
+            imagewebp($im, $thumbPath, 70);
+        }
+        chmod($thumbPath, 0644);
+
+        imagedestroy($im);
+    }
+
+    private function applyExifOrientation(\GdImage $im, string $filePath): \GdImage
+    {
+        $exif = @exif_read_data($filePath);
+        if ($exif === false || !isset($exif['Orientation']) || (int) $exif['Orientation'] <= 1) {
+            return $im;
+        }
+
+        $rotated = match((int) $exif['Orientation']) {
+            3 => imagerotate($im, 180, 0),
+            6 => imagerotate($im, -90, 0),
+            8 => imagerotate($im, 90, 0),
+            default => false,
+        };
+
+        if ($rotated !== false) {
+            imagedestroy($im);
+            imagealphablending($rotated, false);
+            imagesavealpha($rotated, true);
+            return $rotated;
+        }
+
+        return $im;
     }
 
     private function assertPublicHost(string $host): void
@@ -151,7 +224,6 @@ final class QuestionImageService
         if (false === filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             throw new \InvalidArgumentException("Bu manzil taqiqlangan (ichki tarmoq).");
         }
-        // Block cloud metadata endpoints explicitly
         if (in_array($ip, ['169.254.169.254', '100.100.100.200'], true)) {
             throw new \InvalidArgumentException("Bu manzil taqiqlangan.");
         }
@@ -208,18 +280,5 @@ final class QuestionImageService
         }
 
         return $body;
-    }
-
-    public function deleteImage(?string $relativePath): void
-    {
-        if (!$relativePath) {
-            return;
-        }
-
-        $filename = basename($relativePath);
-        $fullPath = $this->uploadDir . '/' . $filename;
-        if (file_exists($fullPath)) {
-            @unlink($fullPath);
-        }
     }
 }

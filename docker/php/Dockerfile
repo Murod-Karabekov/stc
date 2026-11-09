@@ -5,6 +5,9 @@ RUN apk add --no-cache \
     postgresql-dev \
     icu-dev \
     libzip-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
     zip \
     unzip \
     git \
@@ -13,11 +16,14 @@ RUN apk add --no-cache \
 
 # Install PHP extensions
 RUN docker-php-ext-configure intl \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         pdo_pgsql \
         intl \
         zip \
-        opcache
+        opcache \
+        gd \
+        exif
 
 # Copy php config
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/custom.ini
