@@ -69,9 +69,15 @@ class QuestionCrudController extends AbstractCrudController
             ->createAsGlobalAction();
 
         return $actions
+            ->disable(Action::NEW)
             ->add(Crud::PAGE_INDEX, $previewAction)
             ->add(Crud::PAGE_INDEX, $newAction)
             ->update(Crud::PAGE_INDEX, Action::EDIT, fn(Action $a) => $a->linkToUrl(fn(Question $q): string => '/admin/question-editor/' . $q->getId() . '/edit'));
+    }
+
+    public function new(\EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext $context): \EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore|\Symfony\Component\HttpFoundation\Response
+    {
+        return $this->redirect('/admin/question-editor/new');
     }
 
     public function configureFields(string $pageName): iterable
