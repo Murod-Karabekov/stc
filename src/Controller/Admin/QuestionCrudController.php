@@ -64,9 +64,14 @@ class QuestionCrudController extends AbstractCrudController
                 return ['id' => $question->getId()];
             });
 
+        $newAction = Action::new('newInEditor', '+ Yangi savol', 'fa-solid fa-plus')
+            ->linkToUrl('/admin/question-editor/new')
+            ->createAsGlobalAction();
+
         return $actions
             ->add(Crud::PAGE_INDEX, $previewAction)
-            ->add(Crud::PAGE_DETAIL, $previewAction);
+            ->add(Crud::PAGE_INDEX, $newAction)
+            ->update(Crud::PAGE_INDEX, Action::EDIT, fn(Action $a) => $a->linkToUrl(fn(Question $q): string => '/admin/question-editor/' . $q->getId() . '/edit'));
     }
 
     public function configureFields(string $pageName): iterable

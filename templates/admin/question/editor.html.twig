@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ question ? 'Savolni tahrirlash' : 'Yangi savol' }} — JDPU STC Admin{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-zinc-950 text-zinc-100 font-mono px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+
+    {# Back link #}
+    <div class="mb-6">
+      <a href="/admin/question"
+         class="text-zinc-500 hover:text-zinc-200 text-xs tracking-widest uppercase">← Savollar ro'yxati</a>
+    </div>
+
+    <h1 class="text-xl font-semibold mb-6">
+      {{ question ? 'Savolni tahrirlash (#' ~ question.id ~ ')' : 'Yangi savol' }}
+    </h1>
+
+    {% for label, msg in errors %}
+      <div class="mb-1 text-xs text-red-400">• {{ msg }}</div>
+    {% endfor %}
+
+    <form method="post" id="editor-form" class="space-y-5">
+      <input type="hidden" name="_token" value="{{ csrf_token('question_editor') }}">
+
+      {# Exam + Section #}
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Imtihon</label>
+          <select name="exam_id" class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+            <option value="0">— Tanlanmagan —</option>
+            {% for exam in exams %}
+              <option value="{{ exam.id }}" {{ f.exam_id == exam.id ? 'selected' : '' }}>{{ exam.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1">Bo'lim <span class="text-red-400">*</span></label>
+          <select name="section_id" class="w-full bg-zinc-900 border {{ errors.section_id is defined ? 'border-red-600' : 'border-zinc-700' }} rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+            <option value="0">— Tanlang —</option>
+            {% for section in sections %}
+              <option value="{{ section.id }}" {{ f.section_id == section.id ? 'selected' : '' }}>
+                {{ section.position }}. {{ section.title }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {# Question text with +image button #}
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <label class="text-xs text-zinc-500">Savol matni <span class="text-red-400">*</span></label>
+          <div class="relative ml-auto" id="img-dropdown-wrap">
+            <button type="button" id="img-btn"
+                    aria-label="Rasm qo'shish"
+                    class="text-zinc-500 hover:text-zinc-200 text-xs border border-zinc-700 rounded px-2 py-0.5 transition-colors">
+              + rasm
+            </button>
+            <div id="img-dropdown"
+                 class="hidden absolute right-0 top-full mt-1 w-44 bg-zinc-900 border border-zinc-700 rounded shadow-lg z-20">
+              <label class="flex items-center gap-2 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800 cursor-pointer">
+                <span>📂</span> Fayl yuklash
+                <input type="file" id="img-file" accept="image/jpeg,image/png,image/webp" class="hidden">
+              </label>
+              <button type="button" id="img-url-toggle"
+                      class="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-zinc-200 hover:bg-zinc-800">
+                <span>🔗</span> Havola orqali
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {# URL input (hidden by default) #}
+        <div id="img-url-row" class="hidden mb-2 flex gap-2">
+          <input type="url" id="img-url-input" placeholder="https://..."
+                 class="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+          <button type="button" id="img-url-submit"
+                  class="px-3 py-1.5 bg-zinc-700 text-zinc-100 text-sm rounded hover:bg-zinc-600 transition-colors">
+            Yuklash
+          </button>
+        </div>
+
+        <textarea name="content" rows="4"
+                  class="w-full bg-zinc-900 border {{ errors.content is defined ? 'border-red-600' : 'border-zinc-700' }} rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400 resize-y"
+                  placeholder="Savol matnini kiriting…">{{ f.content }}</textarea>
+
+        {# Image preview #}
+        <div id="img-preview-wrap" class="{{ f.image_path ? '' : 'hidden' }} mt-2">
+          <div class="relative inline-block">
+            {% if f.image_path %}
+              <img id="img-preview" src="/{{ f.image_path }}" alt="Rasm" width="200"
+                   class="rounded border border-zinc-700 max-h-40 object-contain">
+            {% else %}
+              <img id="img-preview" src="" alt="Rasm" width="200"
+                   class="rounded border border-zinc-700 max-h-40 object-contain hidden">
+            {% endif %}
+          </div>
+          <div class="mt-1 flex gap-3 text-xs text-zinc-500">
+            <span id="img-upload-status"></span>
+            <label class="cursor-pointer hover:text-zinc-200">
+              Almashtirish
+              <input type="file" id="img-replace-file" accept="image/jpeg,image/png,image/webp" class="hidden">
+            </label>
+            <button type="button" id="img-remove" class="hover:text-red-400">O'chirish</button>
+          </div>
+        </div>
+
+        <input type="hidden" name="image_path" id="image_path_input" value="{{ f.image_path }}">
+        <input type="hidden" name="image_alt"  id="image_alt_input"  value="{{ f.image_alt }}">
+      </div>
+
+      {# Answer options A–D #}
+      <div>
+        <label class="block text-xs text-zinc-500 mb-2">
+          Javob variantlari <span class="text-red-400">*</span>
+          <span class="text-zinc-600 ml-1">(to'g'ri javob yonidagi doirani belgilang)</span>
+        </label>
+        <div class="space-y-2">
+          {% for i in 0..3 %}
+            {% set letter = ['A','B','C','D'][i] %}
+            <label class="flex items-start gap-3 group cursor-pointer">
+              <input type="radio" name="correct_option" value="{{ i }}"
+                     {{ f.correct_option == i ? 'checked' : '' }}
+                     class="mt-2.5 accent-zinc-400 shrink-0">
+              <span class="text-zinc-500 text-sm mt-2 w-4 shrink-0">{{ letter }}</span>
+              <textarea name="options[{{ i }}]" rows="1"
+                        class="flex-1 bg-zinc-900 border {{ attribute(errors, 'options_' ~ i) is defined ? 'border-red-600' : 'border-zinc-700' }} rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400 resize-none overflow-hidden"
+                        placeholder="Variant {{ letter }}"
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">{{ f.options[i] ?? '' }}</textarea>
+            </label>
+          {% endfor %}
+        </div>
+        {% if errors.correct_option is defined %}
+          <p class="text-xs text-red-400 mt-1">{{ errors.correct_option }}</p>
+        {% endif %}
+      </div>
+
+      {# Extra settings accordion #}
+      <details class="border border-zinc-800 rounded">
+        <summary class="px-4 py-3 text-sm text-zinc-400 cursor-pointer hover:text-zinc-200 select-none">
+          Qo'shimcha sozlamalar
+        </summary>
+        <div class="px-4 pb-4 pt-2 space-y-3 border-t border-zinc-800">
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs text-zinc-500 mb-1">Qiyinlik</label>
+              <select name="difficulty" class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+                <option value="easy"   {{ f.difficulty == 'easy'   ? 'selected' : '' }}>Oson</option>
+                <option value="medium" {{ f.difficulty == 'medium' ? 'selected' : '' }}>O'rtacha</option>
+                <option value="hard"   {{ f.difficulty == 'hard'   ? 'selected' : '' }}>Qiyin</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 mb-1">Ball</label>
+              <input type="number" name="points" min="1" max="100"
+                     value="{{ f.points }}"
+                     class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 mb-1">Holat</label>
+              <select name="status" class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+                <option value="draft"    {{ f.status == 'draft'    ? 'selected' : '' }}>Qoralama</option>
+                <option value="ready"    {{ f.status == 'ready'    ? 'selected' : '' }}>Tayyor</option>
+                <option value="archived" {{ f.status == 'archived' ? 'selected' : '' }}>Arxivlangan</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-500 mb-1">Rasm tavsifi (alt matn)</label>
+            <input type="text" id="image_alt_visible" value="{{ f.image_alt }}"
+                   oninput="document.getElementById('image_alt_input').value=this.value"
+                   placeholder="Rasm nima haqida?"
+                   class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-500 mb-1">Izoh (ixtiyoriy)</label>
+            <textarea name="explanation" rows="3"
+                      class="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400 resize-y"
+                      placeholder="To'g'ri javobning izohi…">{{ f.explanation }}</textarea>
+          </div>
+        </div>
+      </details>
+
+      {# Actions #}
+      <div class="flex gap-3 pt-2">
+        <button type="submit" name="save"
+                class="px-5 py-2 bg-zinc-100 text-zinc-900 text-sm rounded hover:bg-white transition-colors font-semibold">
+          Saqlash
+        </button>
+        <button type="submit" name="save_next" value="1"
+                class="px-5 py-2 border border-zinc-600 text-zinc-300 text-sm rounded hover:border-zinc-400 transition-colors">
+          Saqlash va keyingisi
+        </button>
+        <a href="/admin/question"
+           class="px-5 py-2 text-zinc-500 text-sm hover:text-zinc-300 transition-colors">
+          Bekor qilish
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  const CSRF = {{ csrf_token('question_image')|json_encode|raw }};
+
+  // Dropdown toggle
+  const btn      = document.getElementById('img-btn');
+  const dropdown = document.getElementById('img-dropdown');
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => dropdown.classList.add('hidden'));
+
+  // URL row toggle
+  document.getElementById('img-url-toggle').addEventListener('click', () => {
+    dropdown.classList.add('hidden');
+    document.getElementById('img-url-row').classList.toggle('hidden');
+  });
+
+  // File upload
+  document.getElementById('img-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) uploadFile(file);
+    dropdown.classList.add('hidden');
+  });
+  document.getElementById('img-replace-file').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) uploadFile(file);
+  });
+
+  // URL submit
+  document.getElementById('img-url-submit').addEventListener('click', () => {
+    const url = document.getElementById('img-url-input').value.trim();
+    if (url) importUrl(url);
+  });
+
+  // Remove image
+  document.getElementById('img-remove').addEventListener('click', () => {
+    setImage('', '');
+    document.getElementById('img-url-input').value = '';
+    document.getElementById('img-url-row').classList.add('hidden');
+  });
+
+  async function uploadFile(file) {
+    setStatus('Yuklanmoqda…');
+    const fd = new FormData();
+    fd.append('image', file);
+    const res = await fetch('/admin/question-image/upload', {
+      method: 'POST',
+      headers: { 'X-Csrf-Token': CSRF },
+      body: fd,
+    });
+    const json = await res.json();
+    if (json.error) { setStatus('Xato: ' + json.error); return; }
+    setImage(json.path, '');
+    setStatus('');
+  }
+
+  async function importUrl(url) {
+    setStatus('Yuklanmoqda…');
+    const fd = new FormData();
+    fd.append('url', url);
+    const res = await fetch('/admin/question-image/import-url', {
+      method: 'POST',
+      headers: { 'X-Csrf-Token': CSRF },
+      body: fd,
+    });
+    const json = await res.json();
+    if (json.error) { setStatus('Xato: ' + json.error); return; }
+    setImage(json.path, '');
+    setStatus('');
+    document.getElementById('img-url-row').classList.add('hidden');
+  }
+
+  function setImage(path, alt) {
+    document.getElementById('image_path_input').value = path;
+    const wrap = document.getElementById('img-preview-wrap');
+    const img  = document.getElementById('img-preview');
+    if (path) {
+      img.src = '/' + path;
+      img.classList.remove('hidden');
+      wrap.classList.remove('hidden');
+    } else {
+      img.src = '';
+      img.classList.add('hidden');
+      wrap.classList.add('hidden');
+    }
+  }
+
+  function setStatus(msg) {
+    document.getElementById('img-upload-status').textContent = msg;
+  }
+
+  // Auto-resize textareas on load
+  document.querySelectorAll('textarea').forEach(ta => {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  });
+})();
+</script>
+{% endblock %}

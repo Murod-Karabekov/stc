@@ -81,6 +81,6 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('');
         yield MenuItem::linkToRoute('Bosh sahifa', 'fa-solid fa-globe', 'app_home');
-        yield MenuItem::linkToRoute('Chiqish', 'fa-solid fa-right-from-bracket', 'app_admin_logout');
+        yield MenuItem::linkToLogout('Chiqish', 'fa-solid fa-right-from-bracket');
     }
 }
