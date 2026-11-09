@@ -122,8 +122,12 @@ final class ExamAttemptService
 
     /**
      * Atomically saves or updates an answer for an in-progress attempt.
+     *
+     * @throws \DomainException       attempt finished or expired
+     * @throws \RuntimeException      stale revision (another tab wrote more recently) → 409
+     * @throws \InvalidArgumentException question/option id not in snapshot
      */
-    public function saveAnswer(ExamAttempt $attempt, int $questionId, ?int $optionId, int $clientRevision): array
+    public function saveAnswer(ExamAttempt $attempt, int $questionId, ?int $optionId, int $expectedRevision): array
     {
         if (!$attempt->isInProgress()) {
             throw new \DomainException('Ushbu urinish yakunlangan. Javoblar qabul qilinmaydi.');
@@ -133,6 +137,12 @@ final class ExamAttemptService
         if ($now > $attempt->getDeadlineAt()) {
             $this->finalizeExpiredAttempt($attempt);
             throw new \DomainException('Imtihon vaqti tugadi. Yangi javoblar saqlanmaydi.');
+        }
+
+        // Reject stale writes from a second tab: client must know the current revision.
+        // expectedRevision = 0 means first save (revision not yet tracked by client).
+        if ($expectedRevision > 0 && $attempt->getRevision() !== $expectedRevision) {
+            throw new \RuntimeException('Ikki oyna ziddiyati aniqlandi. Sahifani yangilang.');
         }
 
         // Validate question belongs to attempt snapshot

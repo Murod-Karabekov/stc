@@ -16,7 +16,17 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
  * Finalizes all in-progress attempts whose deadline has passed.
- * Run via cron: * * * * * php /app/bin/console app:finalize-expired-attempts >> /var/log/stc_cron.log 2>&1
+ *
+ * Production cron (inside the php container, every minute, overlap-safe):
+ *   * * * * * flock -n /tmp/stc_finalize.lock \
+ *       php /app/bin/console app:finalize-expired-attempts \
+ *       >> /var/log/stc_cron.log 2>&1
+ *
+ * Or from host via docker compose (APP_ENV already set in container):
+ *   * * * * * flock -n /tmp/stc_finalize.lock \
+ *       docker compose -f /path/to/docker-compose.yml exec -T php \
+ *       php bin/console app:finalize-expired-attempts \
+ *       >> /var/log/stc_cron.log 2>&1
  */
 #[AsCommand(
     name: 'app:finalize-expired-attempts',

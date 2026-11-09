@@ -38,6 +38,9 @@ class Exam
     #[ORM\Column(options: ['default' => false])]
     private bool $isPublished = false;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $publishedAt = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -138,6 +141,18 @@ class Exam
     {
         $this->isPublished = $isPublished;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('Asia/Tashkent'));
+
+        return $this;
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
+    {
+        $this->publishedAt = $publishedAt;
 
         return $this;
     }

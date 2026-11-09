@@ -31,9 +31,13 @@
       <span class="text-zinc-500 font-mono text-[11px] tracking-wider hidden sm:inline">TALABALAR TEXNOLOGIYA KLUBI</span>
     </div>
 
-    <div>
+    <div class="flex items-center gap-3">
+      <a href="{{ path('app_tanlovlar') }}"
+         class="font-mono text-xs text-zinc-500 hover:text-zinc-300 tracking-wider uppercase transition-colors hidden sm:inline">
+        Tanlovlar
+      </a>
       {% if isSelectionOpen %}
-        <a href="{{ path('app_candidate_register') }}" 
+        <a href="{{ path('app_candidate_register') }}"
            class="group relative inline-flex items-center gap-2 px-4 py-2 border border-zinc-700/80 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-500 text-zinc-200 hover:text-white font-mono text-xs tracking-wider uppercase transition-all duration-200 rounded-sm shadow-sm backdrop-blur-md">
           <span>Saralash</span>
           <span class="text-zinc-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">↗</span>

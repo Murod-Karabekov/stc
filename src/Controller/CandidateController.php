@@ -192,13 +192,15 @@ final class CandidateController extends AbstractController
 
         $questionId = (int) $data['question_id'];
         $optionId = isset($data['option_id']) && $data['option_id'] !== null ? (int) $data['option_id'] : null;
-        $clientRevision = (int) ($data['client_revision'] ?? 1);
+        $expectedRevision = (int) ($data['expected_revision'] ?? 0);
 
         try {
-            $result = $this->attemptService->saveAnswer($attempt, $questionId, $optionId, $clientRevision);
+            $result = $this->attemptService->saveAnswer($attempt, $questionId, $optionId, $expectedRevision);
             return new JsonResponse($result);
         } catch (\DomainException $e) {
             return new JsonResponse(['error' => $e->getMessage(), 'status' => 'expired'], Response::HTTP_GONE);
+        } catch (\RuntimeException $e) {
+            return new JsonResponse(['error' => $e->getMessage(), 'status' => 'conflict'], Response::HTTP_CONFLICT);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }

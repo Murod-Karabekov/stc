@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Natijalar — {{ exam.title }} — JDPU STC{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 font-mono">
+  <header class="border-b border-zinc-800 px-6 py-5 flex items-center gap-4">
+    <a href="{{ path('app_tanlov_show', {code: exam.code}) }}" class="text-zinc-500 hover:text-zinc-200 text-xs tracking-widest uppercase">← {{ exam.title }}</a>
+    <span class="text-zinc-700">/</span>
+    <span class="text-zinc-300 text-xs tracking-widest uppercase">Natijalar</span>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-6 py-12">
+    <h1 class="text-2xl font-semibold mb-2">{{ exam.title }}</h1>
+    <p class="text-zinc-500 text-sm mb-8">
+      Natijalar e'lon qilingan{% if exam.publishedAt %}: {{ exam.publishedAt|date('d.m.Y H:i') }}{% endif %}
+    </p>
+
+    {# Candidate code search #}
+    <form method="get" class="mb-8 flex gap-2">
+      <input type="text" name="kod"
+             value="{{ searchCode }}"
+             placeholder="Nomzod kodingizni kiriting…"
+             class="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-400">
+      <button type="submit"
+              class="px-4 py-2 bg-zinc-700 text-zinc-200 text-sm rounded hover:bg-zinc-600 transition-colors">
+        Qidirish
+      </button>
+    </form>
+
+    {% if searchCode != '' %}
+      {% if found %}
+        <div class="mb-8 border border-zinc-700 rounded p-4 bg-zinc-900">
+          <p class="text-xs text-zinc-500 uppercase tracking-widest mb-2">Sizning natijangiz</p>
+          <div class="flex items-center gap-4">
+            <span class="text-3xl font-bold text-zinc-200">#{{ found.rank }}</span>
+            <div>
+              <p class="text-zinc-300"><code>{{ found.attempt.candidateCode }}</code></p>
+              <p class="text-zinc-400 text-sm">{{ found.attempt.totalScore }} / {{ found.attempt.maxScore }} ball</p>
+              {% set dec = found.attempt.selectionDecision %}
+              <p class="mt-1">
+                {% if dec == 'advanced' %}
+                  <span class="px-2 py-0.5 rounded text-xs bg-green-900 text-green-300">O'tdi</span>
+                {% elseif dec == 'reserve' %}
+                  <span class="px-2 py-0.5 rounded text-xs bg-blue-900 text-blue-300">Zaxira</span>
+                {% elseif dec == 'rejected' %}
+                  <span class="px-2 py-0.5 rounded text-xs bg-red-900 text-red-300">Rad etildi</span>
+                {% else %}
+                  <span class="px-2 py-0.5 rounded text-xs bg-zinc-800 text-zinc-400">Kutilmoqda</span>
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="mb-8 border border-zinc-700 rounded p-4 text-zinc-400 text-sm">
+          <code>{{ searchCode }}</code> kodi bo'yicha natija topilmadi.
+        </div>
+      {% endif %}
+    {% endif %}
+
+    {% if ranked is empty %}
+      <p class="text-zinc-500">Natijalar hali mavjud emas.</p>
+    {% else %}
+      <div class="border border-zinc-800 rounded overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-zinc-800 text-zinc-500 text-xs uppercase tracking-wider">
+              <th class="text-left px-4 py-3 w-10">#</th>
+              <th class="text-left px-4 py-3">Nomzod kodi</th>
+              <th class="text-right px-4 py-3">Ball</th>
+              <th class="text-left px-4 py-3">Qaror</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-900">
+            {% for row in ranked %}
+              {% set a = row.attempt %}
+              <tr class="hover:bg-zinc-900 transition-colors{{ searchCode != '' and a.candidateCode == searchCode ? ' bg-zinc-900' : '' }}">
+                <td class="px-4 py-3 text-zinc-500">{{ row.rank }}</td>
+                <td class="px-4 py-3"><code class="text-zinc-300">{{ a.candidateCode }}</code></td>
+                <td class="px-4 py-3 text-right text-zinc-200">{{ a.totalScore }}</td>
+                <td class="px-4 py-3">
+                  {% if a.selectionDecision == 'advanced' %}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-green-900 text-green-300">O'tdi</span>
+                  {% elseif a.selectionDecision == 'reserve' %}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-blue-900 text-blue-300">Zaxira</span>
+                  {% elseif a.selectionDecision == 'rejected' %}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-red-900 text-red-300">Rad</span>
+                  {% else %}
+                    <span class="px-1.5 py-0.5 rounded text-xs bg-zinc-800 text-zinc-500">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-zinc-600 text-xs mt-3">Jami: {{ ranked|length }} ta yakunlangan urinish</p>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

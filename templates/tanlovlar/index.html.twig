@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tanlovlar — JDPU STC{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 font-mono">
+  <header class="border-b border-zinc-800 px-6 py-5 flex items-center gap-4">
+    <a href="{{ path('app_home') }}" class="text-zinc-500 hover:text-zinc-200 text-xs tracking-widest uppercase">← Bosh sahifa</a>
+    <span class="text-zinc-700">/</span>
+    <span class="text-zinc-300 text-xs tracking-widest uppercase">Tanlovlar</span>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-6 py-12">
+    <h1 class="text-2xl font-semibold mb-8 tracking-tight">Tanlovlar</h1>
+
+    {% if exams is empty %}
+      <p class="text-zinc-500">Hozircha hech qanday tanlov e'lon qilinmagan.</p>
+    {% else %}
+      <ul class="space-y-4">
+        {% for exam in exams %}
+          <li class="border border-zinc-800 rounded p-5 hover:border-zinc-600 transition-colors">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="font-semibold text-zinc-100">{{ exam.title }}</h2>
+                {% if exam.description %}
+                  <p class="text-zinc-400 text-sm mt-1">{{ exam.description }}</p>
+                {% endif %}
+                <div class="flex flex-wrap gap-2 mt-3">
+                  {% if exam.isOpen %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-green-900 text-green-300">Qabul ochiq</span>
+                  {% else %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-zinc-800 text-zinc-400">Qabul yopiq</span>
+                  {% endif %}
+                  {% if exam.isPublished %}
+                    <span class="px-2 py-0.5 rounded text-xs bg-blue-900 text-blue-300">Natijalar e'lon qilingan</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="shrink-0 flex flex-col gap-2 text-right">
+                <a href="{{ path('app_tanlov_show', {code: exam.code}) }}"
+                   class="text-xs text-zinc-400 hover:text-zinc-200 underline">Batafsil</a>
+                {% if exam.isPublished %}
+                  <a href="{{ path('app_tanlov_natijalar', {code: exam.code}) }}"
+                     class="text-xs text-zinc-400 hover:text-zinc-200 underline">Natijalar</a>
+                {% endif %}
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

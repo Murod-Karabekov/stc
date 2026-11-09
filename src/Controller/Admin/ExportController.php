@@ -49,9 +49,10 @@ final class ExportController extends AbstractController
                 'Holat',
                 'Jami ball',
                 'Maksimal ball',
+                'Qaror',
             ];
             foreach ($sections as $section) {
-                $headers[] = 'Bo\'lim ' . $section->getPosition() . ': ' . $section->getTitle();
+                $headers[] = 'Bo\'lim ' . $section->getPosition() . ': ' . $this->sanitizeCsvCell($section->getTitle());
             }
             fputcsv($handle, $headers);
 
@@ -67,6 +68,7 @@ final class ExportController extends AbstractController
                     $attempt->getStatus(),
                     $attempt->getTotalScore(),
                     $attempt->getMaxScore(),
+                    $attempt->getSelectionDecision() ?? '',
                 ];
 
                 $sectionScores = $attempt->getSectionScores();
@@ -91,12 +93,17 @@ final class ExportController extends AbstractController
 
     /**
      * Prevents spreadsheet formula injection.
-     * Cells starting with =, +, -, @, TAB, CR are prefixed with a tab character.
+     * ltrim strips leading whitespace/control chars so "\n=FORMULA" is caught;
+     * space prefix is universally safe in Excel and LibreOffice (tab is not).
      */
     private function sanitizeCsvCell(string $value): string
     {
-        if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
-            return "\t" . $value;
+        if ($value === '') {
+            return $value;
+        }
+        $check = ltrim($value, " \t\r\n");
+        if ($check !== '' && in_array($check[0], ['=', '+', '-', '@'], true)) {
+            return ' ' . $value;
         }
         return $value;
     }

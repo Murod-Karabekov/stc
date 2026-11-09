@@ -19,6 +19,11 @@ class ExamAttempt
     public const STATUS_SUBMITTED = 'SUBMITTED';
     public const STATUS_EXPIRED = 'EXPIRED';
 
+    public const DECISION_PENDING = 'pending';
+    public const DECISION_ADVANCED = 'advanced';
+    public const DECISION_RESERVE = 'reserve';
+    public const DECISION_REJECTED = 'rejected';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -67,6 +72,15 @@ class ExamAttempt
 
     #[ORM\Column(options: ['default' => 1])]
     private int $revision = 1;
+
+    #[ORM\Column(length: 20, options: ['default' => 'pending'])]
+    private string $selectionDecision = self::DECISION_PENDING;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $decisionChangedAt = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $decisionChangedBy = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $isSyncedToSheets = false;
@@ -278,6 +292,30 @@ class ExamAttempt
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('Asia/Tashkent'));
 
         return $this;
+    }
+
+    public function getSelectionDecision(): string
+    {
+        return $this->selectionDecision;
+    }
+
+    public function setSelectionDecision(string $decision, string $changedBy): static
+    {
+        $this->selectionDecision = $decision;
+        $this->decisionChangedAt = new \DateTimeImmutable('now', new \DateTimeZone('Asia/Tashkent'));
+        $this->decisionChangedBy = $changedBy;
+
+        return $this;
+    }
+
+    public function getDecisionChangedAt(): ?\DateTimeImmutable
+    {
+        return $this->decisionChangedAt;
+    }
+
+    public function getDecisionChangedBy(): ?string
+    {
+        return $this->decisionChangedBy;
     }
 
     public function isSyncedToSheets(): bool

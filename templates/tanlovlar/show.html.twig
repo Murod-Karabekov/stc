@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ exam.title }} — JDPU STC{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#08080a] text-zinc-100 font-mono">
+  <header class="border-b border-zinc-800 px-6 py-5 flex items-center gap-4">
+    <a href="{{ path('app_tanlovlar') }}" class="text-zinc-500 hover:text-zinc-200 text-xs tracking-widest uppercase">← Tanlovlar</a>
+    <span class="text-zinc-700">/</span>
+    <span class="text-zinc-300 text-xs tracking-widest uppercase">{{ exam.code }}</span>
+  </header>
+
+  <main class="max-w-xl mx-auto px-6 py-12">
+    <h1 class="text-2xl font-semibold mb-2">{{ exam.title }}</h1>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+      {% if exam.isOpen %}
+        <span class="px-2 py-0.5 rounded text-xs bg-green-900 text-green-300">Qabul ochiq</span>
+      {% else %}
+        <span class="px-2 py-0.5 rounded text-xs bg-zinc-800 text-zinc-400">Qabul yopiq</span>
+      {% endif %}
+      {% if exam.isPublished %}
+        <span class="px-2 py-0.5 rounded text-xs bg-blue-900 text-blue-300">Natijalar e'lon qilingan</span>
+      {% endif %}
+    </div>
+
+    {% if exam.description %}
+      <p class="text-zinc-300 mb-6 leading-relaxed">{{ exam.description }}</p>
+    {% endif %}
+
+    <dl class="border border-zinc-800 rounded divide-y divide-zinc-800 mb-8">
+      <div class="flex px-4 py-3">
+        <dt class="w-40 text-zinc-500 text-sm">Davomiyligi</dt>
+        <dd class="text-zinc-200 text-sm">{{ exam.durationMinutes }} daqiqa</dd>
+      </div>
+      <div class="flex px-4 py-3">
+        <dt class="w-40 text-zinc-500 text-sm">Kod</dt>
+        <dd class="text-zinc-200 text-sm"><code>{{ exam.code }}</code></dd>
+      </div>
+    </dl>
+
+    <div class="flex flex-wrap gap-3">
+      {% if exam.isOpen %}
+        <a href="{{ path('app_candidate_register') }}"
+           class="px-4 py-2 bg-zinc-100 text-zinc-900 text-sm font-semibold rounded hover:bg-white transition-colors">
+          Ro'yxatdan o'tish
+        </a>
+      {% endif %}
+      {% if exam.isPublished %}
+        <a href="{{ path('app_tanlov_natijalar', {code: exam.code}) }}"
+           class="px-4 py-2 border border-zinc-600 text-zinc-300 text-sm rounded hover:border-zinc-400 transition-colors">
+          Natijalarni ko'rish
+        </a>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
