@@ -24,7 +24,9 @@ final class ExportController extends AbstractController
     #[Route('/csv', name: 'admin_export_csv', methods: ['GET'])]
     public function csv(): StreamedResponse
     {
-        $attempts = $this->attemptRepository->findAll();
+        $attempts = $this->attemptRepository->createEligibleQueryBuilder('a')
+            ->getQuery()
+            ->getResult();
 
         // Build ordered section list for consistent column headers
         $sections = $this->sectionRepository->findBy([], ['position' => 'ASC']);

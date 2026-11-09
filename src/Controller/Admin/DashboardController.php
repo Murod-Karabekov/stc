@@ -29,15 +29,24 @@ class DashboardController extends AbstractDashboardController
     {
         $exam = $this->examRepository->findCurrentActiveExam();
 
-        // Count users who have at least one exam attempt (= registered candidates)
-        $candidateCount = $this->attemptRepository->createQueryBuilder('a')
+        $candidateCount = $this->attemptRepository->createEligibleQueryBuilder('a')
             ->select('COUNT(DISTINCT IDENTITY(a.candidate))')
             ->getQuery()
             ->getSingleScalarResult();
 
-        $inProgress = $this->attemptRepository->count(['status' => ExamAttempt::STATUS_IN_PROGRESS]);
-        $completed   = $this->attemptRepository->count(['status' => ExamAttempt::STATUS_SUBMITTED])
-                     + $this->attemptRepository->count(['status' => ExamAttempt::STATUS_EXPIRED]);
+        $inProgress = (int) $this->attemptRepository->createEligibleQueryBuilder('a')
+            ->select('COUNT(a)')
+            ->andWhere('a.status = :s')
+            ->setParameter('s', ExamAttempt::STATUS_IN_PROGRESS)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $completed = (int) $this->attemptRepository->createEligibleQueryBuilder('a')
+            ->select('COUNT(a)')
+            ->andWhere('a.status IN (:s)')
+            ->setParameter('s', [ExamAttempt::STATUS_SUBMITTED, ExamAttempt::STATUS_EXPIRED])
+            ->getQuery()
+            ->getSingleScalarResult();
 
         return $this->render('admin/dashboard.html.twig', [
             'exam'           => $exam,

@@ -52,9 +52,9 @@ final class TanlovlarController extends AbstractController
             throw $this->createNotFoundException('Natijalar hali e\'lon qilinmagan.');
         }
 
-        // Only finalized attempts, ordered by score DESC
-        $attempts = $this->attemptRepository->createQueryBuilder('a')
-            ->where('a.exam = :exam')
+        // Only finalized attempts from non-admin candidates, ordered by score DESC
+        $attempts = $this->attemptRepository->createEligibleQueryBuilder('a')
+            ->andWhere('a.exam = :exam')
             ->andWhere('a.status IN (:statuses)')
             ->setParameter('exam', $exam)
             ->setParameter('statuses', [ExamAttempt::STATUS_SUBMITTED, ExamAttempt::STATUS_EXPIRED])
