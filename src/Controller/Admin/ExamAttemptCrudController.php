@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ExamAttempt;
+use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
@@ -17,10 +22,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
+use Symfony\Component\Routing\RouterInterface;
 
 class ExamAttemptCrudController extends AbstractCrudController
 {
+    public function __construct(private readonly RouterInterface $router) {}
+
     public static function getEntityFqcn(): string
     {
         return ExamAttempt::class;
@@ -32,7 +39,26 @@ class ExamAttemptCrudController extends AbstractCrudController
             ->setEntityLabelInSingular('Nomzod natijasi')
             ->setEntityLabelInPlural('Nomzodlar va natijalar')
             ->setDefaultSort(['totalScore' => 'DESC', 'id' => 'ASC'])
-            ->setSearchFields(['candidateCode']);
+            ->setSearchFields(['candidateCode']); // name/phone handled in createIndexQueryBuilder
+    }
+
+    public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
+    {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        // Fetch-join candidate to avoid N+1 queries on the index list
+        $qb->leftJoin('entity.candidate', 'c_ea')
+           ->addSelect('c_ea');
+
+        // Extend search to cover candidate name and phone
+        $q = trim((string) $searchDto->getQuery());
+        if ($q !== '') {
+            $qb->orWhere('c_ea.fullName LIKE :_cq')
+               ->orWhere('c_ea.phone LIKE :_cq')
+               ->setParameter('_cq', '%' . $q . '%');
+        }
+
+        return $qb;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -49,8 +75,7 @@ class ExamAttemptCrudController extends AbstractCrudController
                 'O\'tdi' => ExamAttempt::DECISION_ADVANCED,
                 'Zaxira' => ExamAttempt::DECISION_RESERVE,
                 'Rad etildi' => ExamAttempt::DECISION_REJECTED,
-            ]))
-            ->add(TextFilter::new('candidateCode', 'Nomzod kodi'));
+            ]));
     }
 
     public function configureActions(Actions $actions): Actions
@@ -61,14 +86,27 @@ class ExamAttemptCrudController extends AbstractCrudController
             ->setCssClass('btn btn-sm btn-outline-secondary');
 
         return $actions
-            ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $decideAction)
-            ->add(Crud::PAGE_DETAIL, $decideAction)
-            ->disable(Action::NEW, Action::DELETE, Action::EDIT);
+            ->disable(Action::NEW, Action::DELETE, Action::EDIT, Action::DETAIL);
     }
 
     public function configureFields(string $pageName): iterable
     {
+        $router = $this->router;
+
+        // Full name as a clickable link to the custom detail page (index only)
+        yield TextField::new('candidate.fullName', 'To\'liq ism')
+            ->formatValue(static function (mixed $value, ExamAttempt $a) use ($router): string {
+                $url = htmlspecialchars($router->generate('admin_attempt_detail', ['id' => $a->getId()]));
+                $name = htmlspecialchars((string) $value);
+                return sprintf('<a href="%s" class="fw-semibold text-decoration-none">%s</a>', $url, $name ?: '<em class="text-muted">—</em>');
+            })
+            ->renderAsHtml()
+            ->onlyOnIndex();
+
+        yield TextField::new('candidate.phone', 'Telefon')
+            ->onlyOnIndex();
+
         yield TextField::new('candidateCode', 'Nomzod kodi');
         yield AssociationField::new('exam', 'Imtihon');
 
@@ -84,8 +122,19 @@ class ExamAttemptCrudController extends AbstractCrudController
                 ExamAttempt::STATUS_EXPIRED => 'danger',
             ]);
 
-        yield IntegerField::new('totalScore', 'Ball');
-        yield IntegerField::new('maxScore', 'Maksimal ball')->hideOnIndex();
+        // Show score only for finalized attempts; in-progress shows "Yakunlanmagan"
+        yield TextField::new('totalScore', 'Ball')
+            ->formatValue(static function (mixed $value, ExamAttempt $a): string {
+                if ($a->isInProgress()) {
+                    return '<span class="badge text-bg-secondary">Yakunlanmagan</span>';
+                }
+                return htmlspecialchars((string) $value) . ' / ' . $a->getMaxScore();
+            })
+            ->renderAsHtml()
+            ->onlyOnIndex();
+
+        yield IntegerField::new('totalScore', 'Jami ball')->hideOnIndex();
+        yield IntegerField::new('maxScore', 'Maks. ball')->hideOnIndex();
 
         yield ChoiceField::new('selectionDecision', 'Qaror')
             ->setChoices([

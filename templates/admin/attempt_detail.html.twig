@@ -1,0 +1,240 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nomzod tafsiloti — {{ attempt.candidateCode }} — JDPU STC Admin{% endblock %}
+
+{% block body %}
+{% set is_final = attempt.status != 'IN_PROGRESS' %}
+<div class="min-h-screen bg-zinc-950 text-zinc-100 font-mono px-4 py-8 md:px-8">
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    {# Back nav #}
+    <div>
+      <a href="/admin/exam-attempt" class="text-zinc-500 hover:text-zinc-200 text-xs tracking-widest uppercase">← Nomzodlar ro'yxati</a>
+    </div>
+
+    <h1 class="text-lg font-semibold tracking-wide">Nomzod tafsiloti</h1>
+
+    {# ── 1. Registration info ─────────────────────────────────────────── #}
+    <section class="border border-zinc-800 rounded">
+      <div class="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">Shaxsiy ma'lumotlar</div>
+      <dl class="divide-y divide-zinc-800">
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">To'liq ism:</dt>
+          <dd class="text-zinc-100 text-sm font-semibold">{{ attempt.candidate.fullName ?? '—' }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Telefon raqami:</dt>
+          <dd class="text-zinc-200 text-sm">{{ attempt.candidate.phone ?? '—' }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Login identifier:</dt>
+          <dd class="text-zinc-400 text-sm font-mono">{{ attempt.candidate.identifier ?? '—' }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Ro'yxatdan o'tgan:</dt>
+          <dd class="text-zinc-400 text-sm">{{ attempt.candidate.createdAt|date('d.m.Y H:i') }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    {# ── 2. Exam + timing ─────────────────────────────────────────────── #}
+    <section class="border border-zinc-800 rounded">
+      <div class="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">Imtihon ma'lumotlari</div>
+      <dl class="divide-y divide-zinc-800">
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Nomzod kodi:</dt>
+          <dd class="text-zinc-200 text-sm font-mono"><code>{{ attempt.candidateCode }}</code></dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Imtihon:</dt>
+          <dd class="text-zinc-200 text-sm">{{ attempt.exam }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Boshlangan:</dt>
+          <dd class="text-zinc-200 text-sm">{{ attempt.startedAt|date('d.m.Y H:i:s') }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Muddat:</dt>
+          <dd class="text-zinc-200 text-sm">{{ attempt.deadlineAt|date('d.m.Y H:i:s') }}</dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Topshirilgan:</dt>
+          <dd class="text-zinc-200 text-sm">
+            {% if attempt.submittedAt %}
+              {{ attempt.submittedAt|date('d.m.Y H:i:s') }}
+            {% else %}
+              <span class="text-zinc-500">—</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Holat:</dt>
+          <dd class="text-sm">
+            {% if attempt.status == 'IN_PROGRESS' %}
+              <span class="text-amber-400">Jarayonda</span>
+            {% elseif attempt.status == 'SUBMITTED' %}
+              <span class="text-emerald-400">Topshirildi</span>
+            {% else %}
+              <span class="text-red-400">Vaqt tugagan</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    {# ── 3. Score summary ─────────────────────────────────────────────── #}
+    <section class="border border-zinc-800 rounded">
+      <div class="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">Natija</div>
+      {% if not is_final %}
+        <div class="px-4 py-4 text-sm text-amber-400">Test hali yakunlanmagan — ball hisoblanmagan.</div>
+      {% else %}
+        <dl class="divide-y divide-zinc-800">
+          <div class="flex px-4 py-3">
+            <dt class="w-44 text-zinc-500 text-sm shrink-0">Jami ball:</dt>
+            <dd class="text-zinc-100 text-sm font-semibold">{{ attempt.totalScore }} / {{ attempt.maxScore }}</dd>
+          </div>
+          {% set answered_count = answersByQid|length %}
+          {% set total_q = attempt.questionSnapshot|length %}
+          <div class="flex px-4 py-3">
+            <dt class="w-44 text-zinc-500 text-sm shrink-0">Javob berilgan:</dt>
+            <dd class="text-zinc-200 text-sm">{{ answered_count }} / {{ total_q }}</dd>
+          </div>
+          <div class="flex px-4 py-3">
+            <dt class="w-44 text-zinc-500 text-sm shrink-0">Javob berilmagan:</dt>
+            <dd class="text-zinc-200 text-sm">{{ total_q - answered_count }}</dd>
+          </div>
+          {% if attempt.sectionScores is not empty %}
+            <div class="px-4 py-3">
+              <dt class="text-zinc-500 text-xs uppercase tracking-wider mb-2">Bo'limlar bo'yicha ball:</dt>
+              <dd>
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="text-zinc-500">
+                      <th class="text-left font-normal pb-1">Bo'lim</th>
+                      <th class="text-right font-normal pb-1">Ball</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-900">
+                    {% for section_title, section_score in attempt.sectionScores %}
+                      <tr>
+                        <td class="py-1 text-zinc-300">{{ section_title }}</td>
+                        <td class="py-1 text-right text-zinc-200 font-semibold">{{ section_score }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </dd>
+            </div>
+          {% endif %}
+        </dl>
+      {% endif %}
+    </section>
+
+    {# ── 4. Selection decision ─────────────────────────────────────────── #}
+    <section class="border border-zinc-800 rounded">
+      <div class="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">Qaror</div>
+      <dl class="divide-y divide-zinc-800">
+        <div class="flex px-4 py-3">
+          <dt class="w-44 text-zinc-500 text-sm shrink-0">Qaror:</dt>
+          <dd class="text-sm">
+            {% if attempt.selectionDecision == 'advanced' %}
+              <span class="text-emerald-400 font-semibold">O'tdi</span>
+            {% elseif attempt.selectionDecision == 'reserve' %}
+              <span class="text-sky-400">Zaxira</span>
+            {% elseif attempt.selectionDecision == 'rejected' %}
+              <span class="text-red-400">Rad etildi</span>
+            {% else %}
+              <span class="text-zinc-500">Kutilmoqda</span>
+            {% endif %}
+          </dd>
+        </div>
+        {% if attempt.decisionChangedBy %}
+          <div class="flex px-4 py-3">
+            <dt class="w-44 text-zinc-500 text-sm shrink-0">Qaror qo'ydi:</dt>
+            <dd class="text-zinc-400 text-sm">{{ attempt.decisionChangedBy }}{% if attempt.decisionChangedAt %}, {{ attempt.decisionChangedAt|date('d.m.Y H:i') }}{% endif %}</dd>
+          </div>
+        {% endif %}
+        {% if is_final %}
+          <div class="flex items-center px-4 py-3 gap-3">
+            <a href="{{ path('admin_attempt_decision', {id: attempt.id}) }}"
+               class="text-xs border border-zinc-700 text-zinc-300 px-3 py-1.5 rounded hover:border-zinc-500 transition-colors">
+              Qarorni o'zgartirish
+            </a>
+          </div>
+        {% endif %}
+      </dl>
+    </section>
+
+    {# ── 5. Answer review (admin-only, never shown publicly) ───────────── #}
+    {% if is_final and attempt.questionSnapshot is not empty %}
+      <section class="border border-zinc-800 rounded">
+        <div class="px-4 py-3 border-b border-zinc-800 text-xs text-zinc-500 uppercase tracking-wider">Javoblar sharhi</div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-zinc-800 text-zinc-500">
+                <th class="text-left font-normal px-4 py-2 w-8">#</th>
+                <th class="text-left font-normal px-4 py-2">Bo'lim</th>
+                <th class="text-left font-normal px-4 py-2">Savol</th>
+                <th class="text-left font-normal px-4 py-2">Tanlangan javob</th>
+                <th class="text-left font-normal px-4 py-2">To'g'ri javob</th>
+                <th class="text-center font-normal px-4 py-2">Natija</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-900">
+              {% for q in attempt.questionSnapshot %}
+                {% set answer = answersByQid[q.question_id]|default(null) %}
+                {% set correctOpt = correctOptionsByQid[q.question_id]|default(null) %}
+                {# Find selected option text from snapshot #}
+                {% set selected_text = null %}
+                {% if answer and answer.selectedOptionId %}
+                  {% for opt in q.options %}
+                    {% if opt.id == answer.selectedOptionId %}
+                      {% set selected_text = opt.content %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                <tr class="{% if answer and answer.isCorrect %}bg-emerald-950/20{% elseif answer %}bg-red-950/20{% endif %}">
+                  <td class="px-4 py-2 text-zinc-500">{{ q.display_number }}</td>
+                  <td class="px-4 py-2 text-zinc-500">{{ q.section_title }}</td>
+                  <td class="px-4 py-2 text-zinc-300 max-w-xs">
+                    <span class="line-clamp-2">{{ q.content|nl2br|striptags }}</span>
+                  </td>
+                  <td class="px-4 py-2">
+                    {% if selected_text %}
+                      <span class="{% if answer.isCorrect %}text-emerald-400{% else %}text-red-400{% endif %}">{{ selected_text }}</span>
+                    {% else %}
+                      <span class="text-zinc-600 italic">Javob berilmagan</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2 text-emerald-300">
+                    {% if correctOpt %}{{ correctOpt.content }}{% else %}<span class="text-zinc-600">—</span>{% endif %}
+                  </td>
+                  <td class="px-4 py-2 text-center">
+                    {% if not answer %}
+                      <span class="text-zinc-600">—</span>
+                    {% elseif answer.isCorrect %}
+                      <span class="text-emerald-400 font-semibold">✓</span>
+                    {% else %}
+                      <span class="text-red-400">✗</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+
+    {# Footer nav #}
+    <div class="flex gap-4 pt-2">
+      <a href="/admin/exam-attempt"
+         class="text-xs border border-zinc-700 text-zinc-400 px-3 py-1.5 rounded hover:border-zinc-500 transition-colors">
+        ← Ro'yxatga qaytish
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
