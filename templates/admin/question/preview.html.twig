@@ -26,20 +26,29 @@
 
     <!-- 2. Optional Image (Question body -> Image -> Options) -->
     {% if question.imagePath %}
+      {% set preview_is_external = question.imageSourceType == 'external' %}
+      {% set preview_src = preview_is_external ? question.imagePath : asset(question.imagePath) %}
       <div class="my-6 border border-zinc-800/80 rounded bg-zinc-900/40 p-2 flex flex-col items-center" id="image-container">
         <a href="#modal-image" class="block cursor-zoom-in">
-          <img src="{{ asset(question.imagePath) }}" 
-               alt="{{ question.imageAlt|default('Savol diagrammasi') }}" 
+          <img src="{{ preview_src }}"
+               alt="{{ question.imageAlt|default('Savol diagrammasi') }}"
+               {% if preview_is_external %}referrerpolicy="no-referrer"{% endif %}
+               decoding="async"
                class="max-h-80 w-auto object-contain rounded" />
         </a>
-        <p class="text-[11px] text-zinc-500 mt-2 font-mono">Kattalashtirish uchun rasm ustiga bosing (Ver: {{ question.imageVersion }})</p>
+        <p class="text-[11px] text-zinc-500 mt-2 font-mono">
+          Kattalashtirish uchun rasm ustiga bosing (Ver: {{ question.imageVersion }})
+          {% if preview_is_external %} · tashqi havola{% endif %}
+        </p>
       </div>
 
       <!-- Accessible modal for enlarged image -->
       <div id="modal-image" class="hidden target:flex fixed inset-0 z-50 bg-black/90 backdrop-blur-sm p-4 items-center justify-center">
         <div class="relative max-w-4xl max-h-[90vh]">
           <a href="#image-container" class="absolute -top-10 right-0 text-white font-mono text-sm hover:text-zinc-300">✕ Yopish (Esc)</a>
-          <img src="{{ asset(question.imagePath) }}" alt="{{ question.imageAlt }}" class="max-h-[85vh] w-auto object-contain border border-zinc-700 rounded" />
+          <img src="{{ preview_src }}" alt="{{ question.imageAlt }}"
+               {% if preview_is_external %}referrerpolicy="no-referrer"{% endif %}
+               class="max-h-[85vh] w-auto object-contain border border-zinc-700 rounded" />
         </div>
       </div>
     {% endif %}

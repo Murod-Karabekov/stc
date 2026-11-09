@@ -124,6 +124,28 @@ final class QuestionImageService
         }
     }
 
+    /**
+     * Validates an external HTTPS URL without downloading it.
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function validateExternalUrl(string $url): string
+    {
+        $parsed = parse_url($url);
+        if (!isset($parsed['scheme'], $parsed['host'])) {
+            throw new \InvalidArgumentException("To'liq URL manzil kiriting (https://...).");
+        }
+        if ($parsed['scheme'] !== 'https') {
+            throw new \InvalidArgumentException("Faqat https:// havolalar qabul qilinadi.");
+        }
+        if (isset($parsed['user']) || isset($parsed['pass'])) {
+            throw new \InvalidArgumentException("Havola tarkibida foydalanuvchi nomi yoki parol bo'lmasligi kerak.");
+        }
+        $this->assertPublicHost($parsed['host']);
+
+        return $url;
+    }
+
     public function deleteImage(?string $relativePath): void
     {
         if (!$relativePath) {

@@ -148,8 +148,9 @@ final class QuestionEditorController extends AbstractController
             'content'       => $question?->getContent() ?? '',
             'options'       => $opts + ['', '', '', ''],
             'correct_option'=> $correctIndex,
-            'image_path'    => $question?->getImagePath() ?? '',
-            'image_alt'     => $question?->getImageAlt() ?? '',
+            'image_path'        => $question?->getImagePath() ?? '',
+            'image_source_type' => $question?->getImageSourceType() ?? '',
+            'image_alt'         => $question?->getImageAlt() ?? '',
             'difficulty'    => $question?->getDifficulty() ?? Question::DIFFICULTY_MEDIUM,
             'points'        => $question?->getPoints() ?? 1,
             'explanation'   => $question?->getExplanation() ?? '',
@@ -177,8 +178,11 @@ final class QuestionEditorController extends AbstractController
             'content'       => trim((string) ($raw['content'] ?? '')),
             'options'       => array_map('trim', (array) ($raw['options'] ?? [])),
             'correct_option'=> (int) ($raw['correct_option'] ?? -1),
-            'image_path'    => trim((string) ($raw['image_path'] ?? '')),
-            'image_alt'     => trim((string) ($raw['image_alt'] ?? '')),
+            'image_path'        => trim((string) ($raw['image_path'] ?? '')),
+            'image_source_type' => in_array($raw['image_source_type'] ?? '', ['upload', 'external'], true)
+                ? (string) $raw['image_source_type']
+                : null,
+            'image_alt'         => trim((string) ($raw['image_alt'] ?? '')),
             'difficulty'    => (string) ($raw['difficulty'] ?? Question::DIFFICULTY_MEDIUM),
             'points'        => max(1, (int) ($raw['points'] ?? 1)),
             'explanation'   => trim((string) ($raw['explanation'] ?? '')),
@@ -224,6 +228,7 @@ final class QuestionEditorController extends AbstractController
         $q->setSection($section);
         $q->setContent($data['content']);
         $q->setImagePath($data['image_path'] ?: null);
+        $q->setImageSourceType($data['image_source_type'] ?: null);
         $q->setImageAlt($data['image_alt'] ?: null);
         $q->setDifficulty($data['difficulty']);
         $q->setPoints($data['points']);

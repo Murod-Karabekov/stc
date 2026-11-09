@@ -110,8 +110,12 @@
 
       <!-- Questions container (all rendered, one shown at a time) -->
       {% for q in questionsSnapshot %}
+        {% set _card_img = q.image_path
+          ? (q.image_source_type|default('upload') == 'external' ? q.image_path : asset(q.image_path))
+          : '' %}
         <div data-exam-target="questionCard"
              data-qid="{{ q.question_id }}"
+             data-img-src="{{ _card_img }}"
              class="question-card {% if not loop.first %}hidden{% endif %}"
              aria-label="Savol {{ q.display_number }}"
              role="group">
@@ -131,12 +135,24 @@
 
           <!-- Optional question image -->
           {% if q.image_path %}
-            <div class="mb-5">
-              <img src="{{ asset('uploads/' ~ q.image_path ~ '?v=' ~ q.image_version) }}"
+            {% set q_is_external = q.image_source_type|default('upload') == 'external' %}
+            {% set q_img_src = q_is_external ? q.image_path : asset(q.image_path) %}
+            <div class="mb-5" style="min-height:9rem;"
+                 data-img-src="{{ q_img_src }}">
+              <img src="{{ q_img_src }}"
                    alt="{{ q.image_alt|default('Savol diagrammasi') }}"
+                   {% if q_is_external %}referrerpolicy="no-referrer"{% endif %}
+                   decoding="async"
                    class="max-w-full border border-zinc-800 rounded-sm cursor-zoom-in max-h-72 object-contain bg-zinc-900"
                    loading="lazy"
-                   data-action="click->exam#openImageModal" />
+                   data-action="click->exam#openImageModal"
+                   onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')" />
+              <div class="hidden p-3 border border-zinc-800 rounded-sm text-xs text-zinc-500">
+                Rasm ochilmadi. Rasmning bevosita havolasini kiriting yoki fayl yuklang.
+                <button type="button"
+                        onclick="const img=this.closest('div').previousElementSibling;img.style.display='';this.closest('div').classList.add('hidden');img.src=img.src;"
+                        class="ml-2 underline hover:text-zinc-300">Qayta urinish</button>
+              </div>
             </div>
           {% endif %}
 

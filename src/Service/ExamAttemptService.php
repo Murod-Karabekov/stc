@@ -97,6 +97,7 @@ final class ExamAttemptService
                 'image_path' => $q->getImagePath(),
                 'image_alt' => $q->getImageAlt(),
                 'image_version' => $q->getImageVersion(),
+                'image_source_type' => $q->getImageSourceType() ?? 'upload',
                 'points' => $q->getPoints(),
                 'options' => $optionsList,
             ];

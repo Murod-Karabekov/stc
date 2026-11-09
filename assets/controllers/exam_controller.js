@@ -123,6 +123,21 @@ export default class extends Controller {
     this._currentIndex = index;
     this._updateNavState();
     this._updateProgressBar();
+    this._prefetchNextImage(index + 1);
+  }
+
+  _prefetchNextImage(index) {
+    const cards = this.questionCardTargets;
+    if (index >= cards.length) return;
+    const src = cards[index].dataset.imgSrc;
+    if (!src) return;
+    // skip if already prefetched
+    if (document.querySelector(`link[rel=prefetch][data-exam-prefetch="${index}"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = src;
+    link.dataset.examPrefetch = index;
+    document.head.appendChild(link);
   }
 
   _updateNavState() {

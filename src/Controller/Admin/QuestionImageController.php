@@ -36,6 +36,25 @@ final class QuestionImageController extends AbstractController
         }
     }
 
+    #[Route('/validate-url', name: 'admin_question_image_validate_url', methods: ['POST'])]
+    public function validateUrl(Request $request): JsonResponse
+    {
+        if (!$this->isCsrfTokenValid('question_image', (string) $request->headers->get('X-Csrf-Token'))) {
+            return $this->json(['error' => 'Xavfsizlik xatosi.'], 403);
+        }
+
+        $url = trim((string) $request->request->get('url', ''));
+        if ($url === '') {
+            return $this->json(['error' => 'Havola kiritilmagan.'], 422);
+        }
+
+        try {
+            return $this->json(['url' => $this->imageService->validateExternalUrl($url)]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
     #[Route('/import-url', name: 'admin_question_image_import_url', methods: ['POST'])]
     public function importUrl(Request $request): JsonResponse
     {

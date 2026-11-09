@@ -77,7 +77,7 @@
                  class="flex-1 bg-zinc-900 border border-zinc-700 rounded px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400">
           <button type="button" id="img-url-submit"
                   class="px-3 py-1.5 bg-zinc-700 text-zinc-100 text-sm rounded hover:bg-zinc-600 transition-colors">
-            Yuklash
+            Qo'shish
           </button>
         </div>
 
@@ -85,22 +85,26 @@
                   class="w-full bg-zinc-900 border {{ errors.content is defined ? 'border-red-600' : 'border-zinc-700' }} rounded px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-zinc-400 resize-y"
                   placeholder="Savol matnini kiriting…">{{ f.content }}</textarea>
 
-        {# Image preview — use thumbnail (.webp → _thumb.webp) when available #}
-        {% set f_preview_src = '' %}
-        {% if f.image_path %}
-          {% set f_preview_src = f.image_path ends with '.webp'
+        {# Image preview #}
+        {% if f.image_source_type == 'external' %}
+          {% set f_preview_initial = f.image_path %}
+        {% elseif f.image_path %}
+          {% set f_preview_initial = '/' ~ (f.image_path ends with '.webp'
             ? f.image_path|replace({'.webp': '_thumb.webp'})
-            : f.image_path %}
+            : f.image_path) %}
+        {% else %}
+          {% set f_preview_initial = '' %}
         {% endif %}
         <div id="img-preview-wrap" class="{{ f.image_path ? '' : 'hidden' }} mt-2">
           <div class="relative inline-block">
-            {% if f.image_path %}
-              <img id="img-preview" src="/{{ f_preview_src }}" alt="Rasm" width="200"
-                   class="rounded border border-zinc-700 max-h-40 object-contain">
-            {% else %}
-              <img id="img-preview" src="" alt="Rasm" width="200"
-                   class="rounded border border-zinc-700 max-h-40 object-contain hidden">
-            {% endif %}
+            <img id="img-preview" src="{{ f_preview_initial }}" alt="Rasm" width="200"
+                 class="rounded border border-zinc-700 max-h-40 object-contain {{ f.image_path ? '' : 'hidden' }}">
+            <div id="img-load-error" class="hidden text-xs text-amber-400 p-2 border border-amber-800 rounded mt-1">
+              Rasm ochilmadi. Rasmning bevosita havolasini kiriting yoki fayl yuklang.
+            </div>
+          </div>
+          <div id="img-external-notice" class="{{ f.image_source_type == 'external' ? '' : 'hidden' }} text-xs text-zinc-600 mt-1">
+            Tashqi rasm — asl manzilga bog'liq.
           </div>
           <div class="mt-1 flex gap-3 text-xs text-zinc-500">
             <span id="img-upload-status"></span>
@@ -112,8 +116,9 @@
           </div>
         </div>
 
-        <input type="hidden" name="image_path" id="image_path_input" value="{{ f.image_path }}">
-        <input type="hidden" name="image_alt"  id="image_alt_input"  value="{{ f.image_alt }}">
+        <input type="hidden" name="image_path"        id="image_path_input"        value="{{ f.image_path }}">
+        <input type="hidden" name="image_source_type" id="image_source_type_input" value="{{ f.image_source_type }}">
+        <input type="hidden" name="image_alt"         id="image_alt_input"         value="{{ f.image_alt }}">
       </div>
 
       {# Answer options A–D #}
@@ -224,6 +229,7 @@
   document.getElementById('img-url-toggle').addEventListener('click', () => {
     dropdown.classList.add('hidden');
     document.getElementById('img-url-row').classList.toggle('hidden');
+    document.getElementById('img-url-input').focus();
   });
 
   // File upload
@@ -237,18 +243,29 @@
     if (file) uploadFile(file);
   });
 
-  // URL submit
-  document.getElementById('img-url-submit').addEventListener('click', () => {
-    const url = document.getElementById('img-url-input').value.trim();
-    if (url) importUrl(url);
+  // URL submit — also trigger on Enter
+  document.getElementById('img-url-submit').addEventListener('click', submitUrl);
+  document.getElementById('img-url-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submitUrl(); }
   });
 
   // Remove image
   document.getElementById('img-remove').addEventListener('click', () => {
-    setImage('', '');
+    clearImage();
     document.getElementById('img-url-input').value = '';
     document.getElementById('img-url-row').classList.add('hidden');
   });
+
+  // Attach error handler to initial preview if external
+  const initImg = document.getElementById('img-preview');
+  if (document.getElementById('image_source_type_input').value === 'external') {
+    initImg.addEventListener('error', showLoadError, { once: true });
+  }
+
+  function submitUrl() {
+    const url = document.getElementById('img-url-input').value.trim();
+    if (url) validateUrl(url);
+  }
 
   async function uploadFile(file) {
     setStatus('Yuklanmoqda…');
@@ -261,39 +278,71 @@
     });
     const json = await res.json();
     if (json.error) { setStatus('Xato: ' + json.error); return; }
-    setImage(json.path, json.thumbPath);
+    setUploadedImage(json.path, json.thumbPath);
     setStatus('');
   }
 
-  async function importUrl(url) {
-    setStatus('Yuklanmoqda…');
+  async function validateUrl(url) {
+    setStatus('Tekshirilmoqda…');
     const fd = new FormData();
     fd.append('url', url);
-    const res = await fetch('/admin/question-image/import-url', {
+    const res = await fetch('/admin/question-image/validate-url', {
       method: 'POST',
       headers: { 'X-Csrf-Token': CSRF },
       body: fd,
     });
     const json = await res.json();
     if (json.error) { setStatus('Xato: ' + json.error); return; }
-    setImage(json.path, json.thumbPath);
+    setExternalUrl(json.url);
     setStatus('');
     document.getElementById('img-url-row').classList.add('hidden');
   }
 
-  function setImage(path, thumbPath) {
+  function setUploadedImage(path, thumbPath) {
     document.getElementById('image_path_input').value = path;
+    document.getElementById('image_source_type_input').value = 'upload';
+    document.getElementById('img-external-notice').classList.add('hidden');
+    hideLoadError();
     const wrap = document.getElementById('img-preview-wrap');
     const img  = document.getElementById('img-preview');
-    if (path) {
-      img.src = '/' + (thumbPath || path);
-      img.classList.remove('hidden');
-      wrap.classList.remove('hidden');
-    } else {
-      img.src = '';
-      img.classList.add('hidden');
-      wrap.classList.add('hidden');
-    }
+    img.src = '/' + (thumbPath || path);
+    img.classList.remove('hidden');
+    wrap.classList.remove('hidden');
+  }
+
+  function setExternalUrl(url) {
+    document.getElementById('image_path_input').value = url;
+    document.getElementById('image_source_type_input').value = 'external';
+    document.getElementById('img-external-notice').classList.remove('hidden');
+    hideLoadError();
+    const wrap = document.getElementById('img-preview-wrap');
+    const img  = document.getElementById('img-preview');
+    img.addEventListener('error', showLoadError, { once: true });
+    img.src = url;
+    img.classList.remove('hidden');
+    wrap.classList.remove('hidden');
+  }
+
+  function clearImage() {
+    document.getElementById('image_path_input').value = '';
+    document.getElementById('image_source_type_input').value = '';
+    document.getElementById('img-external-notice').classList.add('hidden');
+    hideLoadError();
+    const wrap = document.getElementById('img-preview-wrap');
+    const img  = document.getElementById('img-preview');
+    img.src = '';
+    img.classList.add('hidden');
+    wrap.classList.add('hidden');
+  }
+
+  function showLoadError() {
+    document.getElementById('img-load-error').classList.remove('hidden');
+    document.getElementById('img-preview').classList.add('hidden');
+  }
+
+  function hideLoadError() {
+    document.getElementById('img-load-error').classList.add('hidden');
+    document.getElementById('img-preview').classList.remove('hidden');
   }
 
   function setStatus(msg) {

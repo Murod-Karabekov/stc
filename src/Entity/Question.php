@@ -41,7 +41,7 @@ class Question
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $imagePath = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -49,6 +49,10 @@ class Question
 
     #[ORM\Column(options: ['default' => 1])]
     private int $imageVersion = 1;
+
+    /** 'upload' = server-stored WebP, 'external' = direct URL, null = legacy (treat as upload) */
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $imageSourceType = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $explanation = null;
@@ -181,6 +185,18 @@ class Question
     public function setImageVersion(int $imageVersion): static
     {
         $this->imageVersion = $imageVersion;
+
+        return $this;
+    }
+
+    public function getImageSourceType(): ?string
+    {
+        return $this->imageSourceType;
+    }
+
+    public function setImageSourceType(?string $imageSourceType): static
+    {
+        $this->imageSourceType = $imageSourceType;
 
         return $this;
     }
