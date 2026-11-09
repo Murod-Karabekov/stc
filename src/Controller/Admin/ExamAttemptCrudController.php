@@ -123,15 +123,7 @@ class ExamAttemptCrudController extends AbstractCrudController
             ]);
 
         // Show score only for finalized attempts; in-progress shows "Yakunlanmagan"
-        yield TextField::new('totalScore', 'Ball')
-            ->formatValue(static function (mixed $value, ExamAttempt $a): string {
-                if ($a->isInProgress()) {
-                    return '<span class="badge text-bg-secondary">Yakunlanmagan</span>';
-                }
-                return htmlspecialchars((string) $value) . ' / ' . $a->getMaxScore();
-            })
-            ->renderAsHtml()
-            ->onlyOnIndex();
+        yield TextField::new('scoreDisplay', 'Ball')->onlyOnIndex();
 
         yield IntegerField::new('totalScore', 'Jami ball')->hideOnIndex();
         yield IntegerField::new('maxScore', 'Maks. ball')->hideOnIndex();

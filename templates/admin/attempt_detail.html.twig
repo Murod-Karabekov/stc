@@ -184,8 +184,8 @@
             <tbody class="divide-y divide-zinc-900">
               {% for q in attempt.questionSnapshot %}
                 {% set answer = answersByQid[q.question_id]|default(null) %}
-                {% set correctOpt = correctOptionsByQid[q.question_id]|default(null) %}
-                {# Find selected option text from snapshot #}
+
+                {# Find selected option text from snapshot options (candidate-visible) #}
                 {% set selected_text = null %}
                 {% if answer and answer.selectedOptionId %}
                   {% for opt in q.options %}
@@ -194,12 +194,26 @@
                     {% endif %}
                   {% endfor %}
                 {% endif %}
+
+                {#
+                  Use correct_option_id recorded immutably in the snapshot at exam start.
+                  Do NOT fall back to live QuestionOption data.
+                  Old attempts without this key show an explicit warning.
+                #}
+                {% set has_key = q.correct_option_id is defined and q.correct_option_id is not null %}
+                {% set correct_text = null %}
+                {% if has_key %}
+                  {% for opt in q.options %}
+                    {% if opt.id == q.correct_option_id %}
+                      {% set correct_text = opt.content %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+
                 <tr class="{% if answer and answer.isCorrect %}bg-emerald-950/20{% elseif answer %}bg-red-950/20{% endif %}">
                   <td class="px-4 py-2 text-zinc-500">{{ q.display_number }}</td>
                   <td class="px-4 py-2 text-zinc-500">{{ q.section_title }}</td>
-                  <td class="px-4 py-2 text-zinc-300 max-w-xs">
-                    <span class="line-clamp-2">{{ q.content|nl2br|striptags }}</span>
-                  </td>
+                  <td class="px-4 py-2 text-zinc-300 max-w-xs">{{ q.content }}</td>
                   <td class="px-4 py-2">
                     {% if selected_text %}
                       <span class="{% if answer.isCorrect %}text-emerald-400{% else %}text-red-400{% endif %}">{{ selected_text }}</span>
@@ -207,8 +221,14 @@
                       <span class="text-zinc-600 italic">Javob berilmagan</span>
                     {% endif %}
                   </td>
-                  <td class="px-4 py-2 text-emerald-300">
-                    {% if correctOpt %}{{ correctOpt.content }}{% else %}<span class="text-zinc-600">—</span>{% endif %}
+                  <td class="px-4 py-2">
+                    {% if not has_key %}
+                      <span class="text-amber-500 italic text-[11px]">Tarixiy javob kaliti mavjud emas</span>
+                    {% elseif correct_text %}
+                      <span class="text-emerald-300">{{ correct_text }}</span>
+                    {% else %}
+                      <span class="text-zinc-600">—</span>
+                    {% endif %}
                   </td>
                   <td class="px-4 py-2 text-center">
                     {% if not answer %}

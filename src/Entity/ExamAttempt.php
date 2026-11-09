@@ -174,6 +174,11 @@ class ExamAttempt
         return $this->status === self::STATUS_IN_PROGRESS;
     }
 
+    public function getScoreDisplay(): string
+    {
+        return $this->isInProgress() ? 'Yakunlanmagan' : ($this->totalScore . ' / ' . $this->maxScore);
+    }
+
     public function isSubmitted(): bool
     {
         return $this->status === self::STATUS_SUBMITTED;

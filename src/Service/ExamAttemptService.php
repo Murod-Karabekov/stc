@@ -100,6 +100,8 @@ final class ExamAttemptService
                 'image_source_type' => $q->getImageSourceType() ?? 'upload',
                 'points' => $q->getPoints(),
                 'options' => $optionsList,
+                // Admin-only: immutable answer key recorded at start; never served to candidates
+                'correct_option_id' => $q->getCorrectOption()?->getId(),
             ];
         }
 

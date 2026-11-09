@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\ExamAttempt;
-use App\Entity\QuestionOption;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,29 +32,9 @@ final class AttemptDecisionController extends AbstractController
             $answersByQid[$answer->getQuestionId()] = $answer;
         }
 
-        // Batch-load correct options for all questions in snapshot (1 query, not N)
-        $qids = array_column($attempt->getQuestionSnapshot(), 'question_id');
-        $correctOptionsByQid = [];
-        if (!empty($qids)) {
-            /** @var QuestionOption[] $opts */
-            $opts = $this->em->createQueryBuilder()
-                ->select('o')
-                ->from(QuestionOption::class, 'o')
-                ->join('o.question', 'q')
-                ->where('q.id IN (:qids)')
-                ->andWhere('o.isCorrect = true')
-                ->setParameter('qids', $qids)
-                ->getQuery()
-                ->getResult();
-            foreach ($opts as $opt) {
-                $correctOptionsByQid[$opt->getQuestion()->getId()] = $opt;
-            }
-        }
-
         return $this->render('admin/attempt_detail.html.twig', [
-            'attempt'            => $attempt,
-            'answersByQid'       => $answersByQid,
-            'correctOptionsByQid' => $correctOptionsByQid,
+            'attempt'      => $attempt,
+            'answersByQid' => $answersByQid,
         ]);
     }
 
